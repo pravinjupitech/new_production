@@ -58,6 +58,7 @@ export const getRoleById = async (req, res, next) => {
       .json({ error: "Internal server error", status: false });
   }
 };
+
 export const updatedRole = async (req, res, next) => {
   try {
     const roleId = req.params.id;
