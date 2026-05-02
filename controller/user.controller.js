@@ -17,7 +17,7 @@ import mongoose from "mongoose";
 import { WorkingHours } from "../model/workingHours.model.js";
 import { UserBranch } from "../model/userBranch.model.js";
 import { LoginVerificationMail } from "../service/sendmail.js";
-dotenv.config();
+dotenv.config();  
 
 
 export const SaveUser = async (req, res, next) => {
@@ -62,7 +62,7 @@ export const SaveUser = async (req, res, next) => {
       req.body.warehouse = await JSON.parse(req.body.warehouse);
       // await assingWarehouse(req.body.warehouse, user._id);
     }
-    if (req.body.role.length > 0) {
+    if (req.body.role&&req.body.role.length > 0) {
       req.body.role = JSON.parse(req.body.role);
     }
     const findRole = await Role.findById(req.body.rolename);
@@ -111,6 +111,7 @@ export const ViewRegisterUser = async (req, res, next) => {
       .json({ error: "Internal Server Error", status: false });
   }
 };
+
 export const SuperAdminRoleUpdate = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
@@ -129,6 +130,7 @@ export const SuperAdminRoleUpdate = async (req, res, next) => {
       .json({ message: "Internal Server Error", status: false });
   }
 };
+
 export const ViewUserById = async (req, res, next) => {
   try {
     let user = await User.findById({ _id: req.params.id, status: "Active" })
@@ -168,7 +170,7 @@ export const ViewUser = async (req, res, next) => {
       .status(500)
       .json({ error: "Internal Server Error", status: false });
   }
-};  
+}; 
 
 export const DeleteUser = async (req, res, next) => {
   try {

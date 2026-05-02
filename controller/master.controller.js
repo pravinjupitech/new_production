@@ -61,6 +61,9 @@ export const getRole = async (req, res, next) => {
         return res.status(500).json({ error: "Internal server error", status: false });
     }
 };
+
+//receipt ,payment , bankstatment , stock ,purchase, sales ,ledger
+
 export const allSalesPerson = async (req, res, next) => {
     try {
         const role = await Role.findOne({ $and: [{ roleName: { $regex: '.*sales Person.*', $options: 'i' } }, { database: "" }] })
