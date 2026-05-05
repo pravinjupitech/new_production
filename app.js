@@ -67,6 +67,7 @@ import BonusRouter from "./routes/bonus.route.js";
 import UserBranchRouter from "./routes/userBranch.route.js";
 import DynamicUnitRouter from "./routes/dynamicUnit.route.js"
 import AccountRouter from "./routes/accounts.route.js"
+import OutWordRouter from "./routes/outwardManagement.route.js"
 import mongoose from "mongoose";
 import cors from "cors";
 import { increasePercentage } from "./controller/targetCreation.controller.js";
@@ -176,6 +177,7 @@ app.use("/bonus", BonusRouter);
 app.use("/check", customerCheckRouter);
 app.use("/branch", UserBranchRouter);
 //----------------------------------------------------------
+app.use("/outward",OutWordRouter)
 app.use("/production-step", StepsRouter);
 app.use("/production-assign", AssignProductionRouter);
 app.use("/rowProduct", RowProductRouter);
