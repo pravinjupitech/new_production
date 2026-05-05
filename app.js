@@ -65,6 +65,8 @@ import WarningRouter from "./routes/warning.route.js";
 import TerminationRouter from "./routes/termination.route.js";
 import BonusRouter from "./routes/bonus.route.js";
 import UserBranchRouter from "./routes/userBranch.route.js";
+import DynamicUnitRouter from "./routes/dynamicUnit.route.js"
+import AccountRouter from "./routes/accounts.route.js"
 import mongoose from "mongoose";
 import cors from "cors";
 import { increasePercentage } from "./controller/targetCreation.controller.js";
@@ -118,6 +120,8 @@ app.use("/categories", CategoryRouter);
 app.use("/order", OrderRouter);
 app.use("/product", ProductsRouter);
 app.use("/unit", UnitRouter);
+app.use("/units", DynamicUnitRouter)
+app.use("/accounts", AccountRouter)
 app.use("/sales-return", SalesReturnRouter);
 app.use("/target-creation", TargetCreationRouter);
 app.use("/purchase-order", PurchaseOrderRouter);
