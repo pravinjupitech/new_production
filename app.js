@@ -80,6 +80,7 @@ import customerCheckRouter from "./routes/customerCheck.route.js";
 import { ViewAllWarehouse } from "./controller/stockUpdation.controller.js";
 import { StockClose } from "./controller/warehouse.controller.js";
 //-------------------------------------------------------------------------------------
+import ActivityRouter from "./routes/activityLog.route.js"
 import StepsRouter from "./routes/steps.route.js";
 import AssignProductionRouter from "./routes/assignProduction.route.js";
 import RowProductRouter from "./routes/rowProduct.route.js";
@@ -177,6 +178,7 @@ app.use("/bonus", BonusRouter);
 app.use("/check", customerCheckRouter);
 app.use("/branch", UserBranchRouter);
 //----------------------------------------------------------
+app.use("/activity",ActivityRouter)
 app.use("/outward",OutWordRouter)
 app.use("/production-step", StepsRouter);
 app.use("/production-assign", AssignProductionRouter);
