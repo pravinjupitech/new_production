@@ -1,7 +1,6 @@
 import { Pincode } from "../model/pincode.model.js";
 import ExcelJS from 'exceljs';
 
-import fs from 'fs';
 
 export const saveExcelPincode = async (req, res, next) => {
     const filePath = req.file?.path;
@@ -61,11 +60,11 @@ export const viewPincodes = async (req, res) => {
             });
         }
 
-       const pinCodes = await Pincode
-            .find({ pincode })
-            .lean();
+        const pinCodes = await Pincode.find({
+            pincode
+        }).lean();
 
-        if (pinCodes.length===0) {
+        if (pinCodes.length === 0) {
             return res.status(404).json({
                 message: "No Data Found",
                 status: false
@@ -80,6 +79,7 @@ export const viewPincodes = async (req, res) => {
 
     } catch (error) {
         console.error(error);
+
         return res.status(500).json({
             message: "Internal Server Error",
             status: false

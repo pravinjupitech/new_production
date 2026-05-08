@@ -10,7 +10,7 @@ const pincodeSchema = new mongoose.Schema({
         type: String
     },
     pincode: {
-        type: String
+        type: Number
     },
 }, { timestamps: true })
 export const Pincode = mongoose.model('pincode', pincodeSchema)
