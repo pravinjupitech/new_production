@@ -91,28 +91,36 @@ export const updatedRole = async (req, res, next) => {
 };
 
 export const saveRole = async (req, res, next) => {
-  try {
-    for (let roleData of req.body.Roles) {
-      const existingRole = await Role.findOne({
-        roleName: roleData.role.roleName,
-        database: roleData.role.database,
-      });
-      if (existingRole) {
-        // console.log(`Role with name ${roleData.role.roleName} already exists.`);
-      } else {
-        const newRole = await Role.create(roleData.role);
-        // console.log(`Role ${newRole.roleName} created successfully.`);
-      }
+    try {
+        if (req.body.Roles && req.body.Roles.length > 0) {
+            req.body.Roles = JSON.parse(req.body.Roles)
+        }
+
+        if (!req.body.Roles || !Array.isArray(req.body.Roles)) {
+            return res.status(400).json({ error: "Roles array is missing or invalid.", status: false });
+        }
+
+        for (let roleData of req.body.Roles) {
+            if (!roleData.role || !roleData.role.roleName || !roleData.role.database) {
+                return res.status(400).json({ error: "Role data is missing required fields.", status: false });
+            }
+
+            const existingRole = await Role.findOne({
+                roleName: roleData.role.roleName,
+                database: roleData.role.database,
+            });
+
+            if (existingRole) {
+                //   console.log(`Role with name ${roleData.role.roleName} already exists.`);
+            } else {
+                const newRole = await Role.create(roleData.role);
+            }
+        }
+        return res.status(200).json({ message: "Role assignment successful!", status: true });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: "Internal Server Error", status: false });
     }
-    return res
-      .status(200)
-      .json({ message: "role assign successfull!", status: true });
-  } catch (err) {
-    console.error(err);
-    return res
-      .status(500)
-      .json({ error: "Internal Server Error", status: false });
-  }
 };
 
 export const updatedRoleGloble = async (req, res, next) => {
