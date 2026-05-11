@@ -1,6 +1,7 @@
 import express from "express";
 import {
   DebitorCalculate,
+  completeSalesOrder,
   OrdertoBilling,
   OrdertoDispatch,
   PartyPurchaseqty,
@@ -28,6 +29,7 @@ router.post("/save-sales-invoice-order", createOrderWithInvoice);
 router.get("/view-create-order-history/:id", createOrderHistory);
 router.get("/view-create-order-history-by-id/:id", createOrderHistoryByUserId);
 router.delete("/delete-sales-order/:id", deleteSalesOrder);
+router.get("/view-complete-order/:database",completeSalesOrder)
 router.get("/view-sales-by-id/:id", createOrderHistoryByPartyId);
 router.put("/update-create-order/:id", updateCreateOrder);
 router.put("/update-create-order-status/:id", updateCreateOrderStatus);
