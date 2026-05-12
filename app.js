@@ -87,6 +87,7 @@ import AssignProductionRouter from "./routes/assignProduction.route.js";
 import RowProductRouter from "./routes/rowProduct.route.js";
 import StartProductionRouter from "./routes/startProduction.route.js";
 import RawProductTargetRouter from "./routes/rawProductTarget.route.js";
+import ProductSetupRouter from "./routes/productSetup.route.js"
 const app = express();
 app.use(cors());
 dotenv.config();
@@ -187,6 +188,7 @@ app.use("/production-assign", AssignProductionRouter);
 app.use("/rowProduct", RowProductRouter);
 app.use("/production-steps", StartProductionRouter);
 app.use("/product-target", RawProductTargetRouter);
+app.use("/product-type",ProductSetupRouter)
 mongoose
   .connect(process.env.DATABASE_URL, {
     useUnifiedTopology: true,
