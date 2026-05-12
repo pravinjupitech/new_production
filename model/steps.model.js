@@ -15,11 +15,15 @@ const stepsSchema = new mongoose.Schema(
         step_No: {
           type: Number,
         },
+        products:[]
       },
     ],
     createdBy: {
       type: String,
     },
+    database:{
+      type:String
+    }
   },
   { timestamps: true }
 );

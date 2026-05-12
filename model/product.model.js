@@ -114,6 +114,9 @@ const ProductSchema = new mongoose.Schema(
       type: Number,
     },
     Units: [],
+    producttype:{
+      type:String
+    }
   },
   { timestamps: true }
 );
