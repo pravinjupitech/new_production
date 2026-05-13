@@ -25,3 +25,16 @@ export const viewproductType = async (req, res, next) => {
     }
 
 }
+
+export const deleteProductSetup = async (req, res, next) => {
+    try {
+        const { id } = req.params
+        const productSetup = await ProductSetup.findByIdAndDelete(id)
+        return productSetup ? res.status(200).json({ message: "Data Deleted", status: true }) : res.status(404).json({ message: "Not Found", status: false })
+    } catch (error) {
+        console.log(error);
+        return res
+            .status(500)
+            .json({ error: "Internal Server Error", status: false });
+    }
+}
