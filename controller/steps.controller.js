@@ -39,7 +39,7 @@ export const viewSteps = async (req, res, next) => {
       .sort({
         sortorder: -1,
       })
-      .populate({ path: "processName", model: "category" });
+      // .populate({ path: "processName", model: "category" });
     return steps.length > 0
       ? res.status(200).json({ message: "Data Found", steps, status: true })
       : res.status(404).json({ message: "Not Found", status: false });
