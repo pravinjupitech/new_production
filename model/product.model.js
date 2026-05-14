@@ -116,7 +116,10 @@ const ProductSchema = new mongoose.Schema(
     Units: [],
     producttype:{
       type:String
-    }
+    },
+  step_Name:{
+    type:String
+  }
   },
   { timestamps: true }
 );
