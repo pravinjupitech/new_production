@@ -595,49 +595,125 @@ export const updateItemWithExcel = async (req, res) => {
       .json({ error: "Internal Server Error", status: false });
   }
 };
-
-export const addProductInWarehouse1 = async (warehouse, warehouseId, id) => {
+export const addProductInWarehouse1 = async (
+  warehouse,
+  warehouseId,
+  id
+) => {
   try {
-    const user = await Warehouse.findById({ _id: warehouseId });
+    const user = await Warehouse.findById({
+      _id: warehouseId,
+    });
+
     if (!user) {
       return console.log("warehouse not found");
     }
+
     const sourceProductItem = user.productItems.find(
-      (pItem) => pItem.productId === id._id
+      (pItem) =>
+        pItem.productId === id._id.toString()
     );
+
+    // ================= UPDATE EXISTING PRODUCT =================
     if (sourceProductItem) {
-      // sourceProductItem.Size += warehouse.Size;
-      sourceProductItem.currentStock = warehouse.qty;
-      sourceProductItem.price = warehouse.Purchase_Rate;
-      sourceProductItem.totalPrice = warehouse.qty * warehouse.Purchase_Rate;
-      sourceProductItem.transferQty = warehouse.qty;
+      sourceProductItem.currentStock =
+        warehouse.qty;
+
+      sourceProductItem.transferQty =
+        warehouse.qty;
+
+      sourceProductItem.primaryUnit =
+        warehouse.primaryUnit;
+
+      sourceProductItem.secondaryUnit =
+        warehouse.secondaryUnit;
+
+      sourceProductItem.secondarySize =
+        warehouse.secondarySize;
+
+      sourceProductItem.gstPercentage =
+        warehouse.GSTRate;
+
+      sourceProductItem.igstType =
+        warehouse.igstType;
+
+      // Only when Purchase_Rate exists
+      if (warehouse.Purchase_Rate) {
+        sourceProductItem.price =
+          warehouse.Purchase_Rate;
+
+        sourceProductItem.totalPrice =
+          warehouse.qty *
+          warehouse.Purchase_Rate;
+
+        sourceProductItem.oRate =
+          warehouse.Purchase_Rate;
+
+        sourceProductItem.oBAmount =
+          (warehouse.qty *
+            warehouse.Purchase_Rate *
+            100) /
+          (warehouse.GSTRate + 100);
+
+        sourceProductItem.oTotal =
+          warehouse.qty *
+          warehouse.Purchase_Rate;
+      }
+
       user.markModified("productItems");
+
       await user.save();
-    } else {
+    }
+
+    // ================= ADD NEW PRODUCT =================
+    else {
       let ware = {
         productId: id._id.toString(),
-        // Size: warehouse.Size,
-        // unitType: warehouse.unitType,
+
         primaryUnit: warehouse.primaryUnit,
         secondaryUnit: warehouse.secondaryUnit,
         secondarySize: warehouse.secondarySize,
+
         currentStock: warehouse.qty,
         transferQty: warehouse.qty,
-        price: warehouse.Purchase_Rate,
-        totalPrice: warehouse.qty * warehouse.Purchase_Rate,
+
         gstPercentage: warehouse.GSTRate,
         igstType: warehouse.igstType,
+
         oQty: warehouse.qty,
-        oRate: warehouse.Purchase_Rate,
-        oBAmount:
-          (warehouse.qty * warehouse.Purchase_Rate * 100) /
-          (warehouse.GSTRate + 100),
         oTaxRate: warehouse.GSTRate,
-        oTotal: warehouse.qty * warehouse.Purchase_Rate,
       };
-      const updated = await Warehouse.updateOne(
+
+      // Add only when Purchase_Rate exists
+      if (warehouse.Purchase_Rate) {
+        ware.price =
+          warehouse.Purchase_Rate;
+
+        ware.totalPrice =
+          warehouse.qty *
+          warehouse.Purchase_Rate;
+
+        ware.oRate =
+          warehouse.Purchase_Rate;
+
+        ware.oBAmount =
+          (warehouse.qty *
+            warehouse.Purchase_Rate *
+            100) /
+          (warehouse.GSTRate + 100);
+
+        ware.oTotal =
+          warehouse.qty *
+          warehouse.Purchase_Rate;
+      }
+
+      await Warehouse.updateOne(
         { _id: warehouseId },
-        { $push: { productItems: ware } },
+        {
+          $push: {
+            productItems: ware,
+          },
+        },
         { upsert: true }
       );
     }
@@ -645,6 +721,56 @@ export const addProductInWarehouse1 = async (warehouse, warehouseId, id) => {
     console.error(error);
   }
 };
+
+// export const addProductInWarehouse1 = async (warehouse, warehouseId, id) => {
+//   try {
+//     const user = await Warehouse.findById({ _id: warehouseId });
+//     if (!user) {
+//       return console.log("warehouse not found");
+//     }
+//     const sourceProductItem = user.productItems.find(
+//       (pItem) => pItem.productId === id._id
+//     );
+//     if (sourceProductItem) {
+//       // sourceProductItem.Size += warehouse.Size;
+//       sourceProductItem.currentStock = warehouse.qty;
+//       sourceProductItem.price = warehouse.Purchase_Rate;
+//       sourceProductItem.totalPrice = warehouse.qty * warehouse.Purchase_Rate;
+//       sourceProductItem.transferQty = warehouse.qty;
+//       user.markModified("productItems");
+//       await user.save();
+//     } else {
+//       let ware = {
+//         productId: id._id.toString(),
+//         // Size: warehouse.Size,
+//         // unitType: warehouse.unitType,
+//         primaryUnit: warehouse.primaryUnit,
+//         secondaryUnit: warehouse.secondaryUnit,
+//         secondarySize: warehouse.secondarySize,
+//         currentStock: warehouse.qty,
+//         transferQty: warehouse.qty,
+//         price: warehouse.Purchase_Rate,
+//         totalPrice: warehouse.qty * warehouse.Purchase_Rate,
+//         gstPercentage: warehouse.GSTRate,
+//         igstType: warehouse.igstType,
+//         oQty: warehouse.qty,
+//         oRate: warehouse.Purchase_Rate,
+//         oBAmount:
+//           (warehouse.qty * warehouse.Purchase_Rate * 100) /
+//           (warehouse.GSTRate + 100),
+//         oTaxRate: warehouse.GSTRate,
+//         oTotal: warehouse.qty * warehouse.Purchase_Rate,
+//       };
+//       const updated = await Warehouse.updateOne(
+//         { _id: warehouseId },
+//         { $push: { productItems: ware } },
+//         { upsert: true }
+//       );
+//     }
+//   } catch (error) {
+//     console.error(error);
+//   }
+// };
 export const addProductInWarehouse = async (
   warehouse,
   warehouseId,
