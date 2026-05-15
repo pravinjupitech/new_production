@@ -57,6 +57,9 @@ export const SaveProduct = async (req, res) => {
     if (req.body.Units) {
       req.body.Units = JSON.parse(req.body.Units);
     }
+    if (req.body.productCosting) {
+      req.body.productCosting = JSON.parse(req.body.productCosting);
+    }
     const product = await Product.create(req.body);
     await addProductInWarehouse1(req.body, product.warehouse, product);
     return product
