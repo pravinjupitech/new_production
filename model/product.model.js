@@ -114,12 +114,20 @@ const ProductSchema = new mongoose.Schema(
       type: Number,
     },
     Units: [],
-    producttype:{
-      type:String
+    producttype: {
+      type: String
     },
-  step_Name:{
-    type:String
-  }
+    step_Name: {
+      type: String
+    },
+    productCosting: [{
+      productId: { type: String },
+      productName: { type: String },
+      purchaseRate: { type: Number },
+      qty: { type: Number },
+      total: { type: Number }
+    }]
+
   },
   { timestamps: true }
 );
