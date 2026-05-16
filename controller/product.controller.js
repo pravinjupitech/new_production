@@ -185,7 +185,9 @@ export const UpdateProduct = async (req, res, next) => {
                     console.log(" after  Purchase_Rate",Purchase_Rate)
 
         } else {
-req.body.Purchase_Rate = existingProduct.landedCost;
+// req.body.Purchase_Rate = existingProduct.landedCost;
+req.body.Purchase_Rate = req.body.Purchase_Rate;
+
                     console.log(" else  Purchase_Rate",req.body.Purchase_Rate)
 
         }
