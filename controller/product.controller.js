@@ -186,7 +186,7 @@ export const UpdateProduct = async (req, res, next) => {
 
         } else {
 req.body.Purchase_Rate = existingProduct.landedCost;
-                    console.log(" else  Purchase_Rate",Purchase_Rate)
+                    console.log(" else  Purchase_Rate",req.body.Purchase_Rate)
 
         }
         if (
