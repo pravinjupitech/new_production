@@ -179,7 +179,7 @@ export const UpdateProduct = async (req, res, next) => {
       if (req.body.Purchase_Rate) {
 
         if (parseInt(req.body.Purchase_Rate) > existingProduct.landedCost) {
-          console.log(" before  Purchase_Rate",Purchase_Rate)
+          console.log(" before  Purchase_Rate",req.body.Purchase_Rate)
           req.body.landedCost = parseInt(req.body.Purchase_Rate);
           req.body.Purchase_Rate = parseInt(req.body.Purchase_Rate);
                     console.log(" after  Purchase_Rate",Purchase_Rate)
