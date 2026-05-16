@@ -197,10 +197,10 @@ export const UpdateProduct = async (req, res, next) => {
           req.body.SalesRate =
             req.body.Purchase_Rate *
             (1 + parseInt(req.body.ProfitPercentage) / 100);
-          req.body.Product_MRP =
-            req.body.SalesRate *
-            (1 + parseInt(req.body.GSTRate) / 100) *
-            (1 + groupDiscount / 100);
+          // req.body.Product_MRP =
+          //   req.body.SalesRate *
+          //   (1 + parseInt(req.body.GSTRate) / 100) *
+          //   (1 + groupDiscount / 100);
         }
       }
       if (existingProduct.Opening_Stock !== parseInt(req.body.Opening_Stock)) {
