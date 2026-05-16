@@ -215,6 +215,7 @@ export const UpdateProduct = async (req, res, next) => {
         req.body.Units = JSON.parse(req.body.Units);
       }
       const updatedProduct = req.body;
+      console.log("updatedProduct",updatedProduct)
       const product = await Product.findByIdAndUpdate(
         productId,
         updatedProduct,
