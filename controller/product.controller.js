@@ -177,23 +177,35 @@ export const UpdateProduct = async (req, res, next) => {
         groupDiscount = maxDiscount?.discount ? maxDiscount?.discount : 0;
       }
       if (req.body.Purchase_Rate) {
+
         if (parseInt(req.body.Purchase_Rate) > existingProduct.landedCost) {
+          console.log(" before  Purchase_Rate",Purchase_Rate)
           req.body.landedCost = parseInt(req.body.Purchase_Rate);
           req.body.Purchase_Rate = parseInt(req.body.Purchase_Rate);
+                    console.log(" after  Purchase_Rate",Purchase_Rate)
+
         } else {
-          req.body.Purchase_Rate = existingProduct.landedCost;
+req.body.Purchase_Rate = existingProduct.landedCost;
+                    console.log(" else  Purchase_Rate",Purchase_Rate)
+
         }
         if (
           !req.body.ProfitPercentage ||
           parseInt(req.body.ProfitPercentage) === 0
         ) {
+          console.log("ProfitPercentage",req.body.ProfitPercentage);
+          
           req.body.SalesRate = req.body.Purchase_Rate * 1.03;
           req.body.ProfitPercentage = 3;
           req.body.Product_MRP =
             req.body.SalesRate *
             (1 + parseInt(req.body.GSTRate) / 100) *
             (1 + groupDiscount / 100);
+                      console.log("ProfitPer",req.body.Product_MRP,req.body.SalesRate);
+
         } else {
+          console.log("else");
+          
           req.body.SalesRate =
             req.body.Purchase_Rate *
             (1 + parseInt(req.body.ProfitPercentage) / 100);
