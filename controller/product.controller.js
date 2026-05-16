@@ -150,6 +150,7 @@ export const DeleteProduct = async (req, res, next) => {
 };
 export const UpdateProduct = async (req, res, next) => {
   try {
+    console.log("purchaseRate",req.body)
     let groupDiscount = 0;
     if (req.files) {
       let images = [];
