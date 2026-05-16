@@ -43,11 +43,13 @@ export const SaveProduct = async (req, res) => {
       req.body.Product_image = images;
     }
     if (!req.body.ProfitPercentage || req.body.ProfitPercentage === 0) {
-      if(req.body.Purchase_Rate){req.body.SalesRate = req.body.Purchase_Rate * 1.03;
-      req.body.Product_MRP =
-        req.body.SalesRate *
-        (1 + req.body.GSTRate / 100) *
-        (1 + groupDiscount / 100);}
+      if (req.body.Purchase_Rate) {
+        req.body.SalesRate = req.body.Purchase_Rate * 1.03;
+        req.body.Product_MRP =
+          req.body.SalesRate *
+          (1 + req.body.GSTRate / 100) *
+          (1 + groupDiscount / 100);
+      }
       // const latest = (req.body.SalesRate + (req.body.SalesRate * req.body.GSTRate / 100))
       // req.body.Product_MRP = latest + (latest * (groupDiscount) / 100);
     }
@@ -64,11 +66,11 @@ export const SaveProduct = async (req, res) => {
     await addProductInWarehouse1(req.body, product.warehouse, product);
     return product
       ? res
-          .status(200)
-          .json({ message: "product save successfully", status: true })
+        .status(200)
+        .json({ message: "product save successfully", status: true })
       : res
-          .status(400)
-          .json({ message: "something went wrong", status: false });
+        .status(400)
+        .json({ message: "something went wrong", status: false });
   } catch (err) {
     console.error(err);
     return res
@@ -173,30 +175,32 @@ export const UpdateProduct = async (req, res, next) => {
         });
         groupDiscount = maxDiscount?.discount ? maxDiscount?.discount : 0;
       }
-      if (parseInt(req.body.Purchase_Rate) > existingProduct.landedCost) {
-        req.body.landedCost = parseInt(req.body.Purchase_Rate);
-        req.body.Purchase_Rate = parseInt(req.body.Purchase_Rate);
-      } else {
-        req.body.Purchase_Rate = existingProduct.landedCost;
-      }
-      if (
-        !req.body.ProfitPercentage ||
-        parseInt(req.body.ProfitPercentage) === 0
-      ) {
-        req.body.SalesRate = req.body.Purchase_Rate * 1.03;
-        req.body.ProfitPercentage = 3;
-        req.body.Product_MRP =
-          req.body.SalesRate *
-          (1 + parseInt(req.body.GSTRate) / 100) *
-          (1 + groupDiscount / 100);
-      } else {
-        req.body.SalesRate =
-          req.body.Purchase_Rate *
-          (1 + parseInt(req.body.ProfitPercentage) / 100);
-        req.body.Product_MRP =
-          req.body.SalesRate *
-          (1 + parseInt(req.body.GSTRate) / 100) *
-          (1 + groupDiscount / 100);
+      if (req.body.Purchase_Rate) {
+        if (parseInt(req.body.Purchase_Rate) > existingProduct.landedCost) {
+          req.body.landedCost = parseInt(req.body.Purchase_Rate);
+          req.body.Purchase_Rate = parseInt(req.body.Purchase_Rate);
+        } else {
+          req.body.Purchase_Rate = existingProduct.landedCost;
+        }
+        if (
+          !req.body.ProfitPercentage ||
+          parseInt(req.body.ProfitPercentage) === 0
+        ) {
+          req.body.SalesRate = req.body.Purchase_Rate * 1.03;
+          req.body.ProfitPercentage = 3;
+          req.body.Product_MRP =
+            req.body.SalesRate *
+            (1 + parseInt(req.body.GSTRate) / 100) *
+            (1 + groupDiscount / 100);
+        } else {
+          req.body.SalesRate =
+            req.body.Purchase_Rate *
+            (1 + parseInt(req.body.ProfitPercentage) / 100);
+          req.body.Product_MRP =
+            req.body.SalesRate *
+            (1 + parseInt(req.body.GSTRate) / 100) *
+            (1 + groupDiscount / 100);
+        }
       }
       if (existingProduct.Opening_Stock !== parseInt(req.body.Opening_Stock)) {
         const qty = req.body.Opening_Stock - existingProduct.Opening_Stock;
@@ -725,6 +729,7 @@ export const addProductInWarehouse1 = async (
   }
 };
 
+
 // export const addProductInWarehouse1 = async (warehouse, warehouseId, id) => {
 //   try {
 //     const user = await Warehouse.findById({ _id: warehouseId });
@@ -774,43 +779,128 @@ export const addProductInWarehouse1 = async (
 //     console.error(error);
 //   }
 // };
+
 export const addProductInWarehouse = async (
   warehouse,
   warehouseId,
   productId
 ) => {
   try {
-    const user = await Warehouse.findById({ _id: warehouseId });
+    const user = await Warehouse.findById(warehouseId);
+
     if (!user) {
-      return console.log("warehouse not found");
+      console.log("warehouse not found");
+      return;
     }
+
     const sourceProductItem = user.productItems.find(
-      (pItem) => pItem.productId.toString() === productId._id.toString()
+      (pItem) =>
+        pItem.productId.toString() ===
+        productId._id.toString()
     );
+
     if (sourceProductItem) {
-      sourceProductItem.gstPercentage = parseInt(warehouse.GSTRate);
-      sourceProductItem.currentStock = parseInt(warehouse.qty);
-      sourceProductItem.price = parseInt(warehouse.Purchase_Rate);
-      sourceProductItem.totalPrice =
-        parseInt(warehouse.qty) * parseInt(warehouse.Purchase_Rate);
-      sourceProductItem.transferQty = parseInt(warehouse.qty);
-      sourceProductItem.oQty = parseInt(warehouse.Opening_Stock);
-      sourceProductItem.oRate = parseInt(warehouse.Purchase_Rate);
-      sourceProductItem.oBAmount =
-        (parseInt(warehouse.Opening_Stock) *
-          parseInt(warehouse.Purchase_Rate) *
-          100) /
-        (parseInt(warehouse.GSTRate) + 100);
-      sourceProductItem.oTaxRate = parseInt(warehouse.GSTRate);
-      sourceProductItem.oTotal =
-        parseInt(warehouse.Opening_Stock) * parseInt(warehouse.Purchase_Rate);
+      // Always update these fields
+      sourceProductItem.gstPercentage = parseInt(
+        warehouse.GSTRate || 0
+      );
+
+      sourceProductItem.currentStock = parseInt(
+        warehouse.qty || 0
+      );
+
+      sourceProductItem.transferQty = parseInt(
+        warehouse.qty || 0
+      );
+
+      sourceProductItem.oQty = parseInt(
+        warehouse.Opening_Stock || 0
+      );
+
+      sourceProductItem.oTaxRate = parseInt(
+        warehouse.GSTRate || 0
+      );
+
+      // Update only if Purchase_Rate exists
+      if (
+        warehouse.Purchase_Rate !== undefined &&
+        warehouse.Purchase_Rate !== null &&
+        warehouse.Purchase_Rate !== ""
+      ) {
+        const qty = parseInt(warehouse.qty || 0);
+        const openingStock = parseInt(
+          warehouse.Opening_Stock || 0
+        );
+
+        const rate = parseInt(
+          warehouse.Purchase_Rate || 0
+        );
+
+        const gst = parseInt(
+          warehouse.GSTRate || 0
+        );
+
+        sourceProductItem.price = rate;
+
+        sourceProductItem.totalPrice =
+          qty * rate;
+
+        sourceProductItem.oRate = rate;
+
+        sourceProductItem.oBAmount =
+          (openingStock * rate * 100) /
+          (gst + 100);
+
+        sourceProductItem.oTotal =
+          openingStock * rate;
+      }
+
       user.markModified("productItems");
+
       await user.save();
     }
   } catch (error) {
     console.error(error);
   }
 };
+
+// export const addProductInWarehouse = async (
+//   warehouse,
+//   warehouseId,
+//   productId
+// ) => {
+//   try {
+//     const user = await Warehouse.findById({ _id: warehouseId });
+//     if (!user) {
+//       return console.log("warehouse not found");
+//     }
+//     const sourceProductItem = user.productItems.find(
+//       (pItem) => pItem.productId.toString() === productId._id.toString()
+//     );
+//     if (sourceProductItem) {
+//       sourceProductItem.gstPercentage = parseInt(warehouse.GSTRate);
+//       sourceProductItem.currentStock = parseInt(warehouse.qty);
+//       sourceProductItem.price = parseInt(warehouse.Purchase_Rate);
+//       sourceProductItem.totalPrice =
+//         parseInt(warehouse.qty) * parseInt(warehouse.Purchase_Rate);
+//       sourceProductItem.transferQty = parseInt(warehouse.qty);
+//       sourceProductItem.oQty = parseInt(warehouse.Opening_Stock);
+//       sourceProductItem.oRate = parseInt(warehouse.Purchase_Rate);
+//       sourceProductItem.oBAmount =
+//         (parseInt(warehouse.Opening_Stock) *
+//           parseInt(warehouse.Purchase_Rate) *
+//           100) /
+//         (parseInt(warehouse.GSTRate) + 100);
+//       sourceProductItem.oTaxRate = parseInt(warehouse.GSTRate);
+//       sourceProductItem.oTotal =
+//         parseInt(warehouse.Opening_Stock) * parseInt(warehouse.Purchase_Rate);
+//       user.markModified("productItems");
+//       await user.save();
+//     }
+//   } catch (error) {
+//     console.error(error);
+//   }
+// };
 export const addProductInWarehouse2 = async (
   warehouse,
   warehouseId,
