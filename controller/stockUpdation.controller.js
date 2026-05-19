@@ -96,8 +96,8 @@ console.log("req.body",req.body);
       });
     }
 
-    const warehouseno = await warehouseNo(warehouseFrom.database);
-    console.log("warehouseNo",warehouseno);
+    // const warehouseno = await warehouseNo(warehouseFrom.database);
+    // console.log("warehouseNo",warehouseno);
     
     warehouseFrom.warehouseNo = `${warehouseFrom.id}${warehouseno}`;
 
