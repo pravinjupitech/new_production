@@ -158,7 +158,7 @@ console.log("fromMainProduct",fromMainProduct);
 
       if (toProduct) {
         toProduct.currentStock += transferQty;
-        if (!toProduct?.price && !toProduct?.totalPrice) {
+        if (toProduct?.price && toProduct?.totalPrice) {
           console.log("run",toProduct?.totalPrice,toProduct?.price);
           
           toProduct.totalPrice += totalPrice;
@@ -171,7 +171,7 @@ console.log("fromMainProduct",fromMainProduct);
           currentStock: transferQty,
           pendingStock: 0,
           price,
-          totalPrice:0,
+          totalPrice,
           primaryUnit
         });
       }
