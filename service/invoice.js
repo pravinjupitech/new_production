@@ -25,6 +25,9 @@ export const generateOrderNo = async (database) => {
 
 export const warehouseNo = async (database) => {
     const companyDetail = await CompanyDetails.findOne({ database: database });
+    if(!companyDetail){
+        return res.status(400).json({message:"Please Fill First Your CompanyDetails"})
+    }
     const invoice = companyDetail.warehouseDummy + 1;
     let warehouseNo = invoice.toString().padStart(3, '0')
     companyDetail.warehouseDummy = invoice;
