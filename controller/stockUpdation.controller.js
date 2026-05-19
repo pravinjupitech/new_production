@@ -68,6 +68,7 @@ export const stockTransferToWarehouse = async (req, res) => {
       InwardStatus,
       OutwardStatus
     } = req.body;
+console.log("req.body",req.body);
 
     if (!warehouseFromId || !warehouseToId || !productItems.length) {
       return res.status(400).json({
@@ -96,6 +97,8 @@ export const stockTransferToWarehouse = async (req, res) => {
     }
 
     const warehouseno = await warehouseNo(warehouseFrom.database);
+    console.log("warehouseNo",warehouseno);
+    
     warehouseFrom.warehouseNo = `${warehouseFrom.id}${warehouseno}`;
 
     for (const item of productItems) {
@@ -107,10 +110,12 @@ export const stockTransferToWarehouse = async (req, res) => {
         price,
         primaryUnit
       } = item;
+console.log("item",item);
 
       const fromProduct = warehouseFrom.productItems.find(
         p => p.productId?.toString() === fromProductId?.toString()
       );
+console.log("fromProduct",fromProduct);
 
       if (!fromProduct) {
         return res.status(400).json({
