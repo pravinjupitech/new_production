@@ -135,11 +135,14 @@ export const stockTransferToWarehouse = async (req, res) => {
         fromMainProduct.qty -= transferQty;
         await fromMainProduct.save();
       }
+console.log("fromMainProduct",fromMainProduct);
 
       /** Update source warehouse stock */
       fromProduct.currentStock -= transferQty;
       fromProduct.pendingStock += transferQty;
-      fromProduct.totalPrice -= totalPrice;
+      if(fromProduct.totalPrice){
+        fromProduct.totalPrice -= totalPrice;
+      }
 
       /** Handle destination warehouse product */
       let toProduct = warehouseTo.productItems.find(
@@ -156,6 +159,8 @@ export const stockTransferToWarehouse = async (req, res) => {
       if (toProduct) {
         toProduct.currentStock += transferQty;
         if (!toProduct?.price && !toProduct?.totalPrice) {
+          console.log("run",toProduct?.totalPrice,toProduct?.price);
+          
           toProduct.totalPrice += totalPrice;
           toProduct.price = price;
         }
@@ -166,7 +171,7 @@ export const stockTransferToWarehouse = async (req, res) => {
           currentStock: transferQty,
           pendingStock: 0,
           price,
-          totalPrice,
+          totalPrice:0,
           primaryUnit
         });
       }
