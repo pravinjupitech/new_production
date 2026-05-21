@@ -325,8 +325,8 @@ export const viewWarehouseStock = async (req, res) => {
     const database = req.params.database;
     const warehouse = await StockUpdation.find({ database: database })
       .sort({ sortorder: -1 })
-      .populate({ path: "productItems.rawProductId", model: "rowProduct" })
-      .populate({ path: "productItems.productId", model: "product" })
+      .populate({ path: "productItems.fromProductId", model: "product" })
+      .populate({ path: "productItems.toProductId", model: "product" })
       .populate({ path: "warehouseToId", model: "warehouse" })
       .populate({ path: "warehouseFromId", model: "warehouse" });
     if (warehouse.length > 0) {
