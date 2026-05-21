@@ -17,15 +17,18 @@ const StockUpdationSchema = new mongoose.Schema(
     stockTransferDate: {
       type: String,
     },
+    stockTransferTime:{
+      type:String
+    },
     exportId: {
       type: String,
     },
     productItems: [
       {
-        productId: {
+        toProductId: {
           type: String,
         },
-        rawProductId: { type: String },
+        fromProductId: { type: String },
         destinationProductId: {
           type: String,
         },

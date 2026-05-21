@@ -62,13 +62,13 @@ export const stockTransferToWarehouse = async (req, res) => {
       warehouseFromId,
       warehouseToId,
       stockTransferDate,
+      stockTransferTime,
       productItems = [],
       grandTotal,
       transferStatus,
       InwardStatus,
       OutwardStatus
     } = req.body;
-    console.log("req.body", req.body);
 
     if (!warehouseFromId || !warehouseToId || !productItems.length) {
       return res.status(400).json({
@@ -110,12 +110,10 @@ export const stockTransferToWarehouse = async (req, res) => {
         price,
         primaryUnit
       } = item;
-      console.log("item", item);
 
       const fromProduct = warehouseFrom.productItems.find(
         p => p.productId?.toString() === fromProductId?.toString()
       );
-      console.log("fromProduct", fromProduct);
 
       if (!fromProduct) {
         return res.status(400).json({
@@ -135,7 +133,6 @@ export const stockTransferToWarehouse = async (req, res) => {
         fromMainProduct.qty -= transferQty;
         await fromMainProduct.save();
       }
-console.log("fromMainProduct",fromMainProduct);
 
       /** Update source warehouse stock */
       fromProduct.currentStock -= transferQty;
@@ -158,16 +155,15 @@ console.log("fromMainProduct",fromMainProduct);
 
       if (toProduct) {
         toProduct.currentStock += transferQty;
-        if (toProduct?.price && toProduct?.totalPrice) {
-          console.log("run",toProduct?.totalPrice,toProduct?.price);
-          
+        if (toProduct?.price && toProduct?.totalPrice) {          
           toProduct.totalPrice += totalPrice;
           toProduct.price = price;
         }
 
       } else {
         warehouseTo.productItems.push({
-          productId: toProductId,
+          toProductId: toProductId,
+          fromProductId:fromProductId,
           currentStock: transferQty,
           pendingStock: 0,
           price,
@@ -190,6 +186,7 @@ console.log("fromMainProduct",fromMainProduct);
       warehouseFromId,
       warehouseToId,
       stockTransferDate,
+      stockTransferTime,
       productItems,
       grandTotal,
       transferStatus,
