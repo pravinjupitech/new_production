@@ -67,6 +67,7 @@ export const stockTransferToWarehouse = async (req, res) => {
       grandTotal,
       transferStatus,
       InwardStatus,
+      database,
       OutwardStatus
     } = req.body;
 
@@ -192,7 +193,7 @@ export const stockTransferToWarehouse = async (req, res) => {
       transferStatus,
       InwardStatus,
       OutwardStatus,
-      database: warehouseFrom.database,
+      database,
       warehouseNo: warehouseFrom.warehouseNo
     });
 
@@ -320,6 +321,186 @@ export const stockTransferToWarehouse = async (req, res) => {
 //   }
 // };
 
+export const financeYearWiseReport = async (req, res) => {
+  try {
+    const { database } = req.params;
+
+    const mainDatabase = database.split("-")[0];
+
+    const [stockUpdation, products] = await Promise.all([
+      StockUpdation.find({
+        database,
+        status: { $ne: "Deactive" },
+      }),
+
+      Product.find({
+        mainDatabase,
+        status: "Active",
+      }),
+    ]);
+
+    const productMap = {};
+
+    const createProductEntry = (productId) => ({
+      productId,
+
+      Product_Title: "",
+
+      oQty: 0,
+      openingRate: 0,
+      openingTotal: 0,
+
+      iQty: 0,
+      inwardTotal: 0,
+
+      outwardQty: 0,
+
+      closingQty: 0,
+      closingRate: 0,
+      closingTotal: 0,
+    });
+
+    for (const stock of stockUpdation) {
+      for (const item of stock.productItems) {
+
+        const toProductId =
+          item.toProductId?.toString();
+
+        if (toProductId) {
+          if (!productMap[toProductId]) {
+            productMap[toProductId] =
+              createProductEntry(toProductId);
+          }
+
+          const inwardEntry =
+            productMap[toProductId];
+
+          const qty =
+            Number(item.transferQty) || 0;
+
+          inwardEntry.iQty += qty;
+
+          inwardEntry.inwardTotal +=
+            qty * (Number(item.price) || 0);
+        }
+
+        const fromProductId =
+          item.fromProductId?.toString();
+
+        if (fromProductId) {
+          if (!productMap[fromProductId]) {
+            productMap[fromProductId] =
+              createProductEntry(fromProductId);
+          }
+
+          const outwardEntry =
+            productMap[fromProductId];
+
+          const qty =
+            Number(item.transferQty) || 0;
+
+          outwardEntry.outwardQty += qty;
+        }
+      }
+    }
+
+    for (const product of products) {
+      const productId = product._id.toString();
+
+      if (!productMap[productId]) {
+        productMap[productId] =
+          createProductEntry(productId);
+      }
+
+      const entry = productMap[productId];
+
+      entry.Product_Title =
+        product.Product_Title || "";
+
+      entry.oQty =
+        Number(product.Opening_Stock) || 0;
+
+      entry.openingRate =
+        Number(product.openingRate) || 0;
+
+      entry.openingTotal =
+        entry.oQty * entry.openingRate;
+
+      entry.closingQty =
+        entry.oQty +
+        entry.iQty -
+        entry.outwardQty;
+
+      const totalQty =
+        entry.oQty + entry.iQty;
+
+      entry.closingRate =
+        totalQty > 0
+          ? (
+              entry.openingTotal +
+              entry.inwardTotal
+            ) / totalQty
+          : 0;
+
+      entry.closingTotal =
+        entry.closingQty *
+        entry.closingRate;
+    }
+
+    const stockReport =
+      Object.values(productMap);
+
+    
+    const totalSummary = stockReport.reduce(
+      (acc, item) => {
+        acc.Product_Title = "Total";
+
+        acc.oQty += item.oQty || 0;
+
+        acc.iQty += item.iQty || 0;
+
+        acc.outwardQty +=
+          item.outwardQty || 0;
+
+        acc.closingQty +=
+          item.closingQty || 0;
+
+        acc.closingTotal +=
+          item.closingTotal || 0;
+
+        return acc;
+      },
+      {
+        Product_Title: "Total",
+
+        oQty: 0,
+        iQty: 0,
+        outwardQty: 0,
+        closingQty: 0,
+        closingTotal: 0,
+      }
+    );
+
+    return res.status(200).json({
+      status: true,
+      message:
+        "Stock report generated successfully",
+
+      data: stockReport,
+
+      totalSummary,
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      status: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
+};
 export const viewWarehouseStock = async (req, res) => {
   try {
     const database = req.params.database;
