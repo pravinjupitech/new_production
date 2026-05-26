@@ -345,7 +345,7 @@ export const financeYearWiseReport = async (req, res) => {
         ]),
 
         Product.find({
-          mainDatabase,
+          database:mainDatabase,
           status: "Active",
         }),
       ]);
