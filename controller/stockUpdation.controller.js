@@ -325,7 +325,6 @@ export const financeYearWiseReport = async (req, res) => {
   try {
     const { database } = req.params;
 
-    const mainDatabase = database.split("-")[0];
 
     const [stockUpdation, products] =
       await Promise.all([
@@ -345,7 +344,7 @@ export const financeYearWiseReport = async (req, res) => {
         ]),
 
         Product.find({
-          database:mainDatabase,
+          database,
           status: "Active",
         }),
       ]);

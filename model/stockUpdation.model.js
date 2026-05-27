@@ -8,6 +8,9 @@ const StockUpdationSchema = new mongoose.Schema(
     database: {
       type: String,
     },
+    financeYear: {
+      type: String
+    },
     warehouseToId: {
       type: String,
     },
@@ -17,8 +20,8 @@ const StockUpdationSchema = new mongoose.Schema(
     stockTransferDate: {
       type: String,
     },
-    stockTransferTime:{
-      type:String
+    stockTransferTime: {
+      type: String
     },
     exportId: {
       type: String,
