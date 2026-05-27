@@ -8,74 +8,180 @@ import { Stock } from "../model/stock.js";
 
 export const SaveProduct = async (req, res) => {
   try {
+
     let groupDiscount = 0;
+
     if (req.body.id) {
+
       const existing = await Product.findOne({
         status: "Active",
         database: req.body.database,
         id: req.body.id,
       });
+
       if (existing) {
-        return res
-          .status(404)
-          .json({ message: "id already exist", status: false });
+        return res.status(400).json({
+          message: "id already exist",
+          status: false,
+        });
       }
+
     } else {
-      return res
-        .status(400)
-        .json({ message: "product id required", status: false });
+
+      return res.status(400).json({
+        message: "product id required",
+        status: false,
+      });
+
     }
+
     const group = await CustomerGroup.find({
       database: req.body.database,
       status: "Active",
     });
+
     if (group.length > 0) {
-      const maxDiscount = group.reduce((max, group) => {
-        return group.discount > max.discount ? group : max;
+
+      const maxDiscount = group.reduce((max, item) => {
+        return item.discount > max.discount ? item : max;
       });
-      groupDiscount = maxDiscount.discount;
+
+      groupDiscount = Number(maxDiscount.discount || 0);
+
     }
-    if (req.files) {
+
+    if (req.files && req.files.length > 0) {
+
       let images = [];
+
       req.files.map((file) => {
         images.push(file.filename);
       });
+
       req.body.Product_image = images;
+
     }
-    if (!req.body.ProfitPercentage || req.body.ProfitPercentage === 0) {
-      if (req.body.Purchase_Rate) {
-        req.body.SalesRate = req.body.Purchase_Rate * 1.03;
+
+    req.body.Purchase_Rate = Number(req.body.Purchase_Rate || 0);
+    req.body.GSTRate = Number(req.body.GSTRate || 0);
+    req.body.ProfitPercentage = Number(req.body.ProfitPercentage || 0);
+    req.body.Opening_Stock = Number(req.body.Opening_Stock || 0);
+    req.body.qty = Number(req.body.qty || 0);
+
+    const purchaseRate = req.body.Purchase_Rate;
+    const gstRate = req.body.GSTRate;
+    const profitPercentage = req.body.ProfitPercentage;
+    const discount = groupDiscount;
+
+    if (profitPercentage === 0) {
+
+      if (purchaseRate > 0) {
+
+        req.body.SalesRate = purchaseRate * 1.03;
+
         req.body.Product_MRP =
           req.body.SalesRate *
-          (1 + req.body.GSTRate / 100) *
-          (1 + groupDiscount / 100);
+          (1 + gstRate / 100) *
+          (1 + discount / 100);
+
+      } else {
+
+        req.body.SalesRate = 0;
+        req.body.Product_MRP = 0;
+
       }
-      // const latest = (req.body.SalesRate + (req.body.SalesRate * req.body.GSTRate / 100))
-      // req.body.Product_MRP = latest + (latest * (groupDiscount) / 100);
+
     }
-    if (req.body.Opening_Stock) {
+
+    else {
+
+      req.body.SalesRate =
+        purchaseRate +
+        (purchaseRate * profitPercentage / 100);
+
+      req.body.Product_MRP =
+        req.body.SalesRate *
+        (1 + gstRate / 100) *
+        (1 + discount / 100);
+
+    }
+
+    req.body.SalesRate = Number(
+      (req.body.SalesRate || 0).toFixed(2)
+    );
+
+    req.body.Product_MRP = Number(
+      (req.body.Product_MRP || 0).toFixed(2)
+    );
+
+
+    if (req.body.Opening_Stock > 0) {
       req.body.qty = req.body.Opening_Stock;
     }
+
+
     if (req.body.Units) {
-      req.body.Units = JSON.parse(req.body.Units);
+
+      try {
+        req.body.Units = JSON.parse(req.body.Units);
+      } catch (err) {
+        req.body.Units = [];
+      }
+
     }
+
     if (req.body.productCosting) {
-      req.body.productCosting = JSON.parse(req.body.productCosting);
+
+      try {
+        req.body.productCosting = JSON.parse(req.body.productCosting);
+      } catch (err) {
+        req.body.productCosting = [];
+      }
+
     }
+
+  
+    if (isNaN(req.body.Product_MRP)) {
+
+      return res.status(400).json({
+        message: "Invalid Product_MRP",
+        status: false,
+      });
+
+    }
+
+    if (isNaN(req.body.SalesRate)) {
+
+      return res.status(400).json({
+        message: "Invalid SalesRate",
+        status: false,
+      });
+
+    }
+
     const product = await Product.create(req.body);
-    await addProductInWarehouse1(req.body, product.warehouse, product);
-    return product
-      ? res
-        .status(200)
-        .json({ message: "product save successfully", status: true })
-      : res
-        .status(400)
-        .json({ message: "something went wrong", status: false });
+
+    await addProductInWarehouse1(
+      req.body,
+      product.warehouse,
+      product
+    );
+
+    return res.status(200).json({
+      message: "product save successfully",
+      status: true,
+      product,
+    });
+
   } catch (err) {
+
     console.error(err);
-    return res
-      .status(500)
-      .json({ error: "Internal Server Error", status: false });
+
+    return res.status(500).json({
+      error: "Internal Server Error",
+      status: false,
+    });
+
   }
 };
 
