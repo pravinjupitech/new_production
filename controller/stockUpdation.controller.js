@@ -331,6 +331,7 @@ export const financeYearWiseReport = async (req, res) => {
 
         StockUpdation.find({
           database,
+          financeYear,
           status: { $ne: "Deactive" },
         }).populate([
           {
@@ -547,6 +548,30 @@ export const financeYearWiseReport = async (req, res) => {
     });
   }
 };
+
+export const viewStock = async (req, res) => {
+  try {
+    const {database,financeYear} = req.params;
+
+    const warehouse = await StockUpdation.find({ database: database,financeYear:financeYear })
+      .sort({ sortorder: -1 })
+      .populate({ path: "productItems.fromProductId", model: "product" })
+      .populate({ path: "productItems.toProductId", model: "product" })
+      .populate({ path: "warehouseToId", model: "warehouse" })
+      .populate({ path: "warehouseFromId", model: "warehouse" });
+    if (warehouse.length > 0) {
+      return res.status(200).json({ Warehouse: warehouse, status: true });
+    } else {
+      return res
+        .status(404)
+        .json({ message: "Warehouse not found", status: false });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 export const viewWarehouseStock = async (req, res) => {
   try {
     const database = req.params.database;
