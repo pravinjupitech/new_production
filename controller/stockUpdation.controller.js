@@ -68,6 +68,7 @@ export const stockTransferToWarehouse = async (req, res) => {
       transferStatus,
       InwardStatus,
       database,
+      financeYear,
       OutwardStatus
     } = req.body;
 
@@ -194,6 +195,7 @@ export const stockTransferToWarehouse = async (req, res) => {
       InwardStatus,
       OutwardStatus,
       database,
+      financeYear,
       warehouseNo: warehouseFrom.warehouseNo
     });
 
