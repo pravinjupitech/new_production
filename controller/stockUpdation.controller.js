@@ -325,7 +325,7 @@ export const stockTransferToWarehouse = async (req, res) => {
 
 export const financeYearWiseReport = async (req, res) => {
   try {
-    const { database } = req.params;
+    const { database,financeYear } = req.params;
 
 
     const [stockUpdation, products] =
