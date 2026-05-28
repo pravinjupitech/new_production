@@ -1,12 +1,12 @@
 import express from "express";
-import { ViewAllWarehouse, ViewAllWarehouse1, ViewDeadParty, ViewOverDueStock, deletedamageItem, financeYearWiseReport, getDamageItems, saveDamageItem, stockTransferToWarehouse, updateDamageItem, updateTypeStatus, updateWarehousetoWarehouse, viewInWardStockToWarehouse, viewOpeningStockWarehouse, viewOutWardStockToWarehouse, viewProductInWarehouse, viewStock, viewStockClosingWarehouse, viewWarehouseStock } from "../controller/stockUpdation.controller.js";
+import { ViewAllWarehouse, ViewAllWarehouse1, ViewDeadParty, ViewOverDueStock, deleteStockTransfer, deletedamageItem, financeYearWiseReport, getDamageItems, saveDamageItem, stockTransferToWarehouse, updateDamageItem, updateTypeStatus, updateWarehousetoWarehouse, viewInWardStockToWarehouse, viewOpeningStockWarehouse, viewOutWardStockToWarehouse, viewProductInWarehouse, viewStock, viewStockClosingWarehouse, viewWarehouseStock } from "../controller/stockUpdation.controller.js";
 
 const router = express.Router();
 
 router.post("/stock-transfer-warehouse", stockTransferToWarehouse)
 router.get("/view-in-ward-stock/:id", viewInWardStockToWarehouse)
 router.get("/view-out-ward-stock/:id", viewOutWardStockToWarehouse)
-
+router.delete("/delete-stock-transfer/:id", deleteStockTransfer);
 router.get("/view-warehouse-stock/:database", viewWarehouseStock)
 router.get("/view-stock-report/:database/:financeYear",financeYearWiseReport)
 router.get("/view-stock-transfer/:database/:financeYear",viewStock)

@@ -215,6 +215,135 @@ export const stockTransferToWarehouse = async (req, res) => {
   }
 };
 
+export const deleteStockTransfer = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const stockTransfer = await StockUpdation.findById(id);
+
+    if (!stockTransfer) {
+      return res.status(404).json({
+        message: "Stock Transfer not found",
+        status: false
+      });
+    }
+
+    const {
+      warehouseFromId,
+      warehouseToId,
+      productItems = []
+    } = stockTransfer;
+
+    const [warehouseFrom, warehouseTo] = await Promise.all([
+      Warehouse.findById(warehouseFromId),
+      Warehouse.findById(warehouseToId)
+    ]);
+
+    if (!warehouseFrom || !warehouseTo) {
+      return res.status(400).json({
+        message: "Warehouse not found",
+        status: false
+      });
+    }
+
+    for (const item of productItems) {
+      const {
+        fromProductId,
+        toProductId,
+        transferQty,
+        totalPrice
+      } = item;
+
+      /** SOURCE WAREHOUSE PRODUCT */
+      const fromProduct = warehouseFrom.productItems.find(
+        p => p.productId?.toString() === fromProductId?.toString()
+      );
+
+      /** DESTINATION WAREHOUSE PRODUCT */
+      const toProduct = warehouseTo.productItems.find(
+        p => p.productId?.toString() === toProductId?.toString()
+      );
+
+      /** VALIDATION */
+      if (!toProduct || toProduct.currentStock < transferQty) {
+        return res.status(400).json({
+          message: "Insufficient stock in destination warehouse",
+          status: false
+        });
+      }
+
+      /** REVERT MAIN PRODUCT STOCK */
+      const fromMainProduct = await Product.findById(fromProductId);
+      if (fromMainProduct) {
+        fromMainProduct.qty += transferQty;
+        await fromMainProduct.save();
+      }
+
+      const toMainProduct = await Product.findById(toProductId);
+      if (toMainProduct) {
+        toMainProduct.qty -= transferQty;
+        await toMainProduct.save();
+      }
+
+      /** REVERT SOURCE WAREHOUSE */
+      if (fromProduct) {
+        fromProduct.currentStock += transferQty;
+
+        if (fromProduct.pendingStock >= transferQty) {
+          fromProduct.pendingStock -= transferQty;
+        }
+
+        if (fromProduct.totalPrice) {
+          fromProduct.totalPrice += totalPrice;
+        }
+      }
+
+      /** REVERT DESTINATION WAREHOUSE */
+      toProduct.currentStock -= transferQty;
+
+      if (toProduct.totalPrice) {
+        toProduct.totalPrice -= totalPrice;
+      }
+
+      /** OPTIONAL:
+       * REMOVE PRODUCT IF STOCK BECOMES ZERO
+       */
+      if (
+        toProduct.currentStock <= 0 &&
+        toProduct.pendingStock <= 0
+      ) {
+        warehouseTo.productItems = warehouseTo.productItems.filter(
+          p => p.productId?.toString() !== toProductId?.toString()
+        );
+      }
+    }
+
+    warehouseFrom.markModified("productItems");
+    warehouseTo.markModified("productItems");
+
+    await Promise.all([
+      warehouseFrom.save(),
+      warehouseTo.save()
+    ]);
+
+    /** DELETE STOCK TRANSFER ENTRY */
+    await StockUpdation.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      message: "Stock Transfer deleted and reverted successfully",
+      status: true
+    });
+
+  } catch (error) {
+    console.error("Delete Stock Transfer Error:", error);
+
+    return res.status(500).json({
+      message: "Internal Server Error",
+      status: false
+    });
+  }
+};
+
 // export const stockTransferToWarehouse = async (req, res) => {
 //   try {
 //     const warehousefrom = await Warehouse.findOne({

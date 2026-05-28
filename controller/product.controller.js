@@ -254,6 +254,7 @@ export const DeleteProduct = async (req, res, next) => {
       .json({ error: "Internal server error", status: false });
   }
 };
+
 export const UpdateProduct = async (req, res, next) => {
   try {
 
