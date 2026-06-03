@@ -490,6 +490,7 @@ export const financeYearWiseReport = async (req, res) => {
       productId,
 
       Product_Title: "",
+      HSN_Code:"",
 
       oQty: 0,
       openingRate: 0,
@@ -519,6 +520,8 @@ export const financeYearWiseReport = async (req, res) => {
 
       entry.Product_Title =
         product.Product_Title || "";
+      entry.HSN_Code =
+        product.HSN_Code || "";
 
       entry.oQty =
         Number(product.Opening_Stock) || 0;
@@ -560,6 +563,9 @@ export const financeYearWiseReport = async (req, res) => {
           inwardEntry.Product_Title =
             item.toProductId
               ?.Product_Title || "";
+          inwardEntry.HSN_Code =
+            item.toProductId
+              ?.HSN_Code || "";
 
           inwardEntry.iQty += qty;
 
@@ -586,6 +592,9 @@ export const financeYearWiseReport = async (req, res) => {
           outwardEntry.Product_Title =
             item.fromProductId
               ?.Product_Title || "";
+          outwardEntry.HSN_Code =
+            item.fromProductId
+              ?.HSN_Code || "";
 
           outwardEntry.outwardQty +=
             qty;
@@ -649,7 +658,6 @@ export const financeYearWiseReport = async (req, res) => {
         },
         {
           Product_Title: "Total",
-
           oQty: 0,
           iQty: 0,
           outwardQty: 0,
