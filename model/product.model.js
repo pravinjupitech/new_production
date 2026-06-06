@@ -107,6 +107,9 @@ const ProductSchema = new mongoose.Schema(
     landedCost: {
       type: Number,
     },
+    openingRate:{
+type:Number
+    },
     SalesRate: {
       type: Number,
     },
