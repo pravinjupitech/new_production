@@ -224,14 +224,14 @@ export const deleteNestedProduct = async (req, res, next) => {
 
 const handleProductRevert = async (item) => {
   if (item?.rProduct_name && item?.rProduct_name_Units.length > 0) {
-    const Rowproduct = await RowProduct.findById(item.rProduct_name);
+    const Rowproduct = await Product.findById(item.rProduct_name);
     await revertStockUnits(item?.rProduct_name_Units, Rowproduct, "add");
     console.log(revertStockUnits || 0);
   }
   if (item?.finalProductDetails && item?.finalProductDetails.length > 0) {
     for (let item1 of item?.finalProductDetails) {
       if (item1?.fProduct_name && item1?.fProduct_name_Units?.length > 0) {
-        const Rowproduct = await RowProduct.findById(item1?.fProduct_name);
+        const Rowproduct = await Product.findById(item1?.fProduct_name);
         await revertStockUnits(
           item1?.fProduct_name_Units,
           Rowproduct,
@@ -243,7 +243,7 @@ const handleProductRevert = async (item) => {
   if (item?.wastageProductDetails && item?.wastageProductDetails.length > 0) {
     for (let item1 of item?.wastageProductDetails) {
       if (item1?.wProduct_name && item1?.wProduct_name_Units.length > 0) {
-        const Rowproduct = await RowProduct.findById(item1.wProduct_name);
+        const Rowproduct = await Product.findById(item1.wProduct_name);
         await revertStockUnits(
           item1?.wProduct_name_Units,
           Rowproduct,
