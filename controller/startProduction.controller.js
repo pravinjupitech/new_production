@@ -5,6 +5,7 @@ import { Warehouse } from "../model/warehouse.model.js";
 
 export const createProduction = async (req, res, next) => {
   try {
+    console.log("request body",req.body)
     const { product_details } = req.body;
     for (const item of product_details) {
       if (item?.rProduct_name) {
