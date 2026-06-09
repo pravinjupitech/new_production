@@ -87,14 +87,14 @@ export const viewProduct = async (req, res, next) => {
       .populate({ path: "product_details.user_name", model: "user" })
       .populate({
         path: "product_details.finalProductDetails.fProduct_name",
-        model: "rowProduct",
+        model: "product",
       })
-      .populate({ path: "product_details.rProduct_name", model: "rowProduct" })
+      .populate({ path: "product_details.rProduct_name", model: "product" })
       .populate({
         path: "product_details.wastageProductDetails.wProduct_name",
-        model: "rowProduct",
+        model: "product",
       })
-      .populate({ path: "processName", model: "category" });
+      // .populate({ path: "processName", model: "category" });
 
     // const products = await StartProduction.aggregate([
     //   {
