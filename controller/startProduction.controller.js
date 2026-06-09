@@ -1,3 +1,4 @@
+import { Product } from "../model/product.model.js";
 import { RowProduct } from "../model/rowProduct.model.js";
 import { StartProduction } from "../model/startProduction.model.js";
 import { Warehouse } from "../model/warehouse.model.js";
@@ -51,7 +52,7 @@ export const createProduction = async (req, res, next) => {
 };
 
 const updateProductQty = async (productId, productUnits, actionType, res) => {
-  const product = await RowProduct.findById(productId);
+  const product = await Product.findById(productId);
   if (!product) {
     return res
       .status(404)
