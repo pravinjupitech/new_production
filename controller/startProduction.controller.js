@@ -62,7 +62,7 @@ const updateProductQty = async (productId, productUnits, actionType, res) => {
   for (const unit of productUnits) {
     if (unit.unit === product.stockUnit) {
       if (actionType === "deduct") {
-        product.qty -= unit.value;
+        product.qty -= unit.qty;
         await product.save();
         await productionlapseWarehouse(
           unit.value,
@@ -70,9 +70,9 @@ const updateProductQty = async (productId, productUnits, actionType, res) => {
           productId
         );
       } else if (actionType === "add") {
-        product.qty += unit.value;
+        product.qty += unit.qty;
         await product.save();
-        await productionAddWarehouse(unit.value, product.warehouse, productId);
+        await productionAddWarehouse(unit.qty, product.warehouse, productId);
       }
     }
   }
