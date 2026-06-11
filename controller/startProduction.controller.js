@@ -262,13 +262,13 @@ const revertStockUnits = async (units, product, actionType) => {
       if (unit.unit === product.stockUnit) {
         product.qty =
           actionType === "add"
-            ? product.qty + unit.value
-            : product.qty - unit.value;
+            ? product.qty + unit.qty
+            : product.qty - unit.qty;
         await product.save();
         await (actionType === "add"
-          ? productionAddWarehouse(unit.value, product.warehouse, product._id)
+          ? productionAddWarehouse(unit.qty, product.warehouse, product._id)
           : productionlapseWarehouse(
-              unit.value,
+              unit.qty,
               product.warehouse,
               product._id
             ));
@@ -296,7 +296,7 @@ export const updateProduct = async (req, res, next) => {
       qty
     ) => {
       if (item[productType]) {
-        const Rowproduct = await RowProduct.findById(item[productType]);
+        const Rowproduct = await Product.findById(item[productType]);
         if (Rowproduct) {
           await Promise.all(
             item[typeUnits].map(async (data) => {
