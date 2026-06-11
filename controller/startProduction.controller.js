@@ -18,7 +18,7 @@ export const createProduction = async (req, res, next) => {
       }
 
       if (item?.finalProductDetails&&item?.finalProductDetails>0) {
-        for (let item1 of  item1?.finalProductDetails) {
+        for (let item1 of  item?.finalProductDetails) {
           await updateProductQty(
             item1?.fProduct_name,
             item1?.fProduct_name_Units,
@@ -29,7 +29,7 @@ export const createProduction = async (req, res, next) => {
       }
 
       if (item?.wastageProductDetails&&item?.wastageProductDetails>0) {
-        for (let item1 of  item1?.wastageProductDetails) {
+        for (let item1 of  item?.wastageProductDetails) {
           await updateProductQty(
             item1?.wProduct_name,
             item1?.wProduct_name_Units,
@@ -65,12 +65,14 @@ const updateProductQty = async (productId, productUnits, actionType, res) => {
         product.qty -= unit.qty;
         await product.save();
         await productionlapseWarehouse(
-          unit.value,
+          unit.qty,
           product.warehouse,
           productId
         );
       } else if (actionType === "add") {
+        console.log("add  qty",unit.qty,unit)
         product.qty += unit.qty;
+
         await product.save();
         await productionAddWarehouse(unit.qty, product.warehouse, productId);
       }
