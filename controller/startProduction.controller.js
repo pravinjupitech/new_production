@@ -15,11 +15,11 @@ export const createProduction = async (req, res, next) => {
           res
         );
       }
-console.log("final",item?.finalProductDetail)
-      if (item?.finalProductDetails&&item?.finalProductDetails>0) {
+console.log("final",item?.finalProductDetails)
+      if (item?.finalProductDetails) {
 
         for (let item1 of  item?.finalProductDetails) {
-          
+
           console.log("item1final",item1)
           await updateProductQty(
             item1?.fProduct_name,
@@ -30,7 +30,7 @@ console.log("final",item?.finalProductDetail)
         }
       }
 
-      if (item?.wastageProductDetails&&item?.wastageProductDetails>0) {
+      if (item?.wastageProductDetails) {
         for (let item1 of  item?.wastageProductDetails) {
           await updateProductQty(
             item1?.wProduct_name,
