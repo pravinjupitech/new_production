@@ -5,7 +5,6 @@ import { Warehouse } from "../model/warehouse.model.js";
 
 export const createProduction = async (req, res, next) => {
   try {
-    console.log("request body",req.body)
     const { product_details } = req.body;
     for (const item of product_details) {
       if (item?.rProduct_name) {
@@ -16,9 +15,12 @@ export const createProduction = async (req, res, next) => {
           res
         );
       }
-
+console.log("final",item?.finalProductDetail)
       if (item?.finalProductDetails&&item?.finalProductDetails>0) {
+
         for (let item1 of  item?.finalProductDetails) {
+          
+          console.log("item1final",item1)
           await updateProductQty(
             item1?.fProduct_name,
             item1?.fProduct_name_Units,
@@ -60,9 +62,11 @@ const updateProductQty = async (productId, productUnits, actionType, res) => {
       .json({ message: "Product not found", status: false });
   }
   for (const unit of productUnits) {
+    console.log("stockUnit",unit.unit ,product.stockUnit,actionType)
     if (unit.unit === product.stockUnit) {
       if (actionType === "deduct") {
         product.qty -= unit.qty;
+        console.log("unitqty",unit.qty)
         await product.save();
         await productionlapseWarehouse(
           unit.qty,
