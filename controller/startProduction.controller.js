@@ -15,12 +15,8 @@ export const createProduction = async (req, res, next) => {
           res
         );
       }
-console.log("final",item?.finalProductDetails)
       if (item?.finalProductDetails) {
-
-        for (let item1 of  item?.finalProductDetails) {
-
-          console.log("item1final",item1)
+        for (let item1 of item?.finalProductDetails) {
           await updateProductQty(
             item1?.fProduct_name,
             item1?.fProduct_name_Units,
@@ -31,7 +27,7 @@ console.log("final",item?.finalProductDetails)
       }
 
       if (item?.wastageProductDetails) {
-        for (let item1 of  item?.wastageProductDetails) {
+        for (let item1 of item?.wastageProductDetails) {
           await updateProductQty(
             item1?.wProduct_name,
             item1?.wProduct_name_Units,
@@ -46,8 +42,8 @@ console.log("final",item?.finalProductDetails)
     return product
       ? res.status(200).json({ message: "Data Added", status: true })
       : res
-          .status(404)
-          .json({ message: "Something Went Wrong", status: false });
+        .status(404)
+        .json({ message: "Something Went Wrong", status: false });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Internal Server Error", status: false });
@@ -62,11 +58,9 @@ const updateProductQty = async (productId, productUnits, actionType, res) => {
       .json({ message: "Product not found", status: false });
   }
   for (const unit of productUnits) {
-    console.log("stockUnit",unit.unit ,product.stockUnit,actionType)
     if (unit.unit === product.stockUnit) {
       if (actionType === "deduct") {
         product.qty -= unit.qty;
-        console.log("unitqty",unit.qty)
         await product.save();
         await productionlapseWarehouse(
           unit.qty,
@@ -74,7 +68,6 @@ const updateProductQty = async (productId, productUnits, actionType, res) => {
           productId
         );
       } else if (actionType === "add") {
-        console.log("add  qty",unit.qty,unit)
         product.qty += unit.qty;
 
         await product.save();
@@ -100,7 +93,7 @@ export const viewProduct = async (req, res, next) => {
         path: "product_details.wastageProductDetails.wProduct_name",
         model: "product",
       })
-      // .populate({ path: "processName", model: "category" });
+    // .populate({ path: "processName", model: "category" });
 
     // const products = await StartProduction.aggregate([
     //   {
@@ -272,10 +265,10 @@ const revertStockUnits = async (units, product, actionType) => {
         await (actionType === "add"
           ? productionAddWarehouse(unit.qty, product.warehouse, product._id)
           : productionlapseWarehouse(
-              unit.qty,
-              product.warehouse,
-              product._id
-            ));
+            unit.qty,
+            product.warehouse,
+            product._id
+          ));
       }
     }
   } else {
@@ -334,10 +327,10 @@ export const updateProduct = async (req, res, next) => {
               const RowRProduct = await RowProduct.findById(item.rProduct_name);
               const rProductQtyTotal = item.rProduct_name_Units
                 ? item.rProduct_name_Units.reduce((total, unit) => {
-                    return unit.unit === RowRProduct.stockUnit
-                      ? total + unit.value
-                      : total;
-                  }, 0)
+                  return unit.unit === RowRProduct.stockUnit
+                    ? total + unit.value
+                    : total;
+                }, 0)
                 : 0;
               await processRowProductUpdate(
                 item,
@@ -352,10 +345,10 @@ export const updateProduct = async (req, res, next) => {
               const RowFProduct = await RowProduct.findById(item.fProduct_name);
               const fProductQtyTotal = item.fProduct_name_Units
                 ? item.fProduct_name_Units.reduce((total, unit) => {
-                    return unit.unit === RowFProduct.stockUnit
-                      ? total + unit.value
-                      : total;
-                  }, 0)
+                  return unit.unit === RowFProduct.stockUnit
+                    ? total + unit.value
+                    : total;
+                }, 0)
                 : 0;
               await processRowProductUpdate(
                 item,
@@ -369,10 +362,10 @@ export const updateProduct = async (req, res, next) => {
               const RowWProduct = await RowProduct.findById(item.wProduct_name);
               const wProductQtyTotal = item.wProduct_name_Units
                 ? item.wProduct_name_Units.reduce((total, unit) => {
-                    return unit.unit === RowWProduct.stockUnit
-                      ? total + unit.value
-                      : total;
-                  }, 0)
+                  return unit.unit === RowWProduct.stockUnit
+                    ? total + unit.value
+                    : total;
+                }, 0)
                 : 0;
               await processRowProductUpdate(
                 item,
@@ -391,19 +384,19 @@ export const updateProduct = async (req, res, next) => {
 
               const existingQty = existingItem[unitType]
                 ? existingItem[unitType].reduce((total, unit) => {
-                    return unit.unit === Rowproduct.stockUnit
-                      ? total + unit.value
-                      : total;
-                  }, 0)
+                  return unit.unit === Rowproduct.stockUnit
+                    ? total + unit.value
+                    : total;
+                }, 0)
                 : 0;
               console.log("[productType]", [productType]);
               console.log("existingQty", existingQty);
               const currentQty = item[unitType]
                 ? item[unitType].reduce((total, unit) => {
-                    return unit.unit === Rowproduct.stockUnit
-                      ? total + unit.value
-                      : total;
-                  }, 0)
+                  return unit.unit === Rowproduct.stockUnit
+                    ? total + unit.value
+                    : total;
+                }, 0)
                 : 0;
               console.log("currentQty", currentQty);
 
@@ -506,10 +499,10 @@ export const updateProduct = async (req, res, next) => {
               const RowRProduct = await RowProduct.findById(item.rProduct_name);
               const rProductQtyTotal = item.rProduct_name_Units
                 ? item.rProduct_name_Units.reduce((total, unit) => {
-                    return unit.unit === RowRProduct.stockUnit
-                      ? total + unit.value
-                      : total;
-                  }, 0)
+                  return unit.unit === RowRProduct.stockUnit
+                    ? total + unit.value
+                    : total;
+                }, 0)
                 : 0;
               await processRowProductUpdate(
                 item,
@@ -524,10 +517,10 @@ export const updateProduct = async (req, res, next) => {
               const RowFProduct = await RowProduct.findById(item.fProduct_name);
               const fProductQtyTotal = item.fProduct_name_Units
                 ? item.fProduct_name_Units.reduce((total, unit) => {
-                    return unit.unit === RowFProduct.stockUnit
-                      ? total + unit.value
-                      : total;
-                  }, 0)
+                  return unit.unit === RowFProduct.stockUnit
+                    ? total + unit.value
+                    : total;
+                }, 0)
                 : 0;
               await processRowProductUpdate(
                 item,
@@ -542,10 +535,10 @@ export const updateProduct = async (req, res, next) => {
               const RowWProduct = await RowProduct.findById(item.wProduct_name);
               const wProductQtyTotal = item.wProduct_name_Units
                 ? item.wProduct_name_Units.reduce((total, unit) => {
-                    return unit.unit === RowWProduct.stockUnit
-                      ? total + unit.value
-                      : total;
-                  }, 0)
+                  return unit.unit === RowWProduct.stockUnit
+                    ? total + unit.value
+                    : total;
+                }, 0)
                 : 0;
               await processRowProductUpdate(
                 item,
@@ -564,19 +557,19 @@ export const updateProduct = async (req, res, next) => {
 
               const existingQty = currentItem[unitType]
                 ? currentItem[unitType].reduce((total, unit) => {
-                    return unit.unit === Rowproduct.stockUnit
-                      ? total + unit.value
-                      : total;
-                  }, 0)
+                  return unit.unit === Rowproduct.stockUnit
+                    ? total + unit.value
+                    : total;
+                }, 0)
                 : 0;
               console.log("[productType]", [productType]);
               console.log("existingQty", existingQty);
               const currentQty = item[unitType]
                 ? item[unitType].reduce((total, unit) => {
-                    return unit.unit === Rowproduct.stockUnit
-                      ? total + unit.value
-                      : total;
-                  }, 0)
+                  return unit.unit === Rowproduct.stockUnit
+                    ? total + unit.value
+                    : total;
+                }, 0)
                 : 0;
               console.log("currentQty", currentQty);
 
