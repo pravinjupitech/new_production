@@ -324,11 +324,11 @@ export const updateProduct = async (req, res, next) => {
           const existingItem = existingProductDetails[i];
           if (!existingItem) {
             if (item.rProduct_name) {
-              const RowRProduct = await RowProduct.findById(item.rProduct_name);
+              const RowRProduct = await Product.findById(item.rProduct_name);
               const rProductQtyTotal = item.rProduct_name_Units
                 ? item.rProduct_name_Units.reduce((total, unit) => {
                   return unit.unit === RowRProduct.stockUnit
-                    ? total + unit.value
+                    ? total + unit.qty
                     : total;
                 }, 0)
                 : 0;
@@ -342,11 +342,11 @@ export const updateProduct = async (req, res, next) => {
             }
 
             if (item.fProduct_name) {
-              const RowFProduct = await RowProduct.findById(item.fProduct_name);
+              const RowFProduct = await Product.findById(item.fProduct_name);
               const fProductQtyTotal = item.fProduct_name_Units
                 ? item.fProduct_name_Units.reduce((total, unit) => {
                   return unit.unit === RowFProduct.stockUnit
-                    ? total + unit.value
+                    ? total + unit.qty
                     : total;
                 }, 0)
                 : 0;
@@ -359,11 +359,11 @@ export const updateProduct = async (req, res, next) => {
               );
             }
             if (item.wProduct_name) {
-              const RowWProduct = await RowProduct.findById(item.wProduct_name);
+              const RowWProduct = await Product.findById(item.wProduct_name);
               const wProductQtyTotal = item.wProduct_name_Units
                 ? item.wProduct_name_Units.reduce((total, unit) => {
                   return unit.unit === RowWProduct.stockUnit
-                    ? total + unit.value
+                    ? total + unit.qty
                     : total;
                 }, 0)
                 : 0;
@@ -380,12 +380,12 @@ export const updateProduct = async (req, res, next) => {
 
           const processProductType = async (productType, unitType, action) => {
             if (item[productType] && existingItem[productType]) {
-              const Rowproduct = await RowProduct.findById(item[productType]);
+              const Rowproduct = await Product.findById(item[productType]);
 
               const existingQty = existingItem[unitType]
                 ? existingItem[unitType].reduce((total, unit) => {
                   return unit.unit === Rowproduct.stockUnit
-                    ? total + unit.value
+                    ? total + unit.qty
                     : total;
                 }, 0)
                 : 0;
@@ -394,7 +394,7 @@ export const updateProduct = async (req, res, next) => {
               const currentQty = item[unitType]
                 ? item[unitType].reduce((total, unit) => {
                   return unit.unit === Rowproduct.stockUnit
-                    ? total + unit.value
+                    ? total + unit.qty
                     : total;
                 }, 0)
                 : 0;
@@ -461,7 +461,7 @@ export const updateProduct = async (req, res, next) => {
                 item[unitType]
               );
               const currentQtyTotal = item[unitType]
-                ? item[unitType].reduce((total, unit) => total + unit.value, 0)
+                ? item[unitType].reduce((total, unit) => total + unit.qty, 0)
                 : 0;
               console.log("currentQty", currentQtyTotal);
               await processRowProductUpdate(
@@ -496,11 +496,11 @@ export const updateProduct = async (req, res, next) => {
           const currentItem = product_details[i];
           if (!currentItem) {
             if (item.rProduct_name) {
-              const RowRProduct = await RowProduct.findById(item.rProduct_name);
+              const RowRProduct = await Product.findById(item.rProduct_name);
               const rProductQtyTotal = item.rProduct_name_Units
                 ? item.rProduct_name_Units.reduce((total, unit) => {
                   return unit.unit === RowRProduct.stockUnit
-                    ? total + unit.value
+                    ? total + unit.qty
                     : total;
                 }, 0)
                 : 0;
@@ -514,11 +514,11 @@ export const updateProduct = async (req, res, next) => {
             }
 
             if (item.fProduct_name) {
-              const RowFProduct = await RowProduct.findById(item.fProduct_name);
+              const RowFProduct = await Product.findById(item.fProduct_name);
               const fProductQtyTotal = item.fProduct_name_Units
                 ? item.fProduct_name_Units.reduce((total, unit) => {
                   return unit.unit === RowFProduct.stockUnit
-                    ? total + unit.value
+                    ? total + unit.qty
                     : total;
                 }, 0)
                 : 0;
@@ -532,11 +532,11 @@ export const updateProduct = async (req, res, next) => {
             }
 
             if (item.wProduct_name) {
-              const RowWProduct = await RowProduct.findById(item.wProduct_name);
+              const RowWProduct = await Product.findById(item.wProduct_name);
               const wProductQtyTotal = item.wProduct_name_Units
                 ? item.wProduct_name_Units.reduce((total, unit) => {
                   return unit.unit === RowWProduct.stockUnit
-                    ? total + unit.value
+                    ? total + unit.qty
                     : total;
                 }, 0)
                 : 0;
@@ -553,12 +553,12 @@ export const updateProduct = async (req, res, next) => {
           }
           const processProductType = async (productType, unitType, action) => {
             if (item[productType] && currentItem[productType]) {
-              const Rowproduct = await RowProduct.findById(item[productType]);
+              const Rowproduct = await Product.findById(item[productType]);
 
               const existingQty = currentItem[unitType]
                 ? currentItem[unitType].reduce((total, unit) => {
                   return unit.unit === Rowproduct.stockUnit
-                    ? total + unit.value
+                    ? total + unit.qty
                     : total;
                 }, 0)
                 : 0;
@@ -567,7 +567,7 @@ export const updateProduct = async (req, res, next) => {
               const currentQty = item[unitType]
                 ? item[unitType].reduce((total, unit) => {
                   return unit.unit === Rowproduct.stockUnit
-                    ? total + unit.value
+                    ? total + unit.qty
                     : total;
                 }, 0)
                 : 0;
@@ -673,13 +673,13 @@ export const updateProduct = async (req, res, next) => {
               // console.log("RawProductExitingItem", existingItem);
               if (existingItem) {
                 // console.log("call existingItem");
-                const Rowproduct = await RowProduct.findById(
+                const Rowproduct = await Product.findById(
                   item.rProduct_name
                 );
                 const existingQty = existingItem.rProduct_name_Units.reduce(
                   (total, unit) =>
                     unit.unit === Rowproduct.stockUnit
-                      ? total + unit.value
+                      ? total + unit.qty
                       : total,
                   0
                 );
@@ -687,7 +687,7 @@ export const updateProduct = async (req, res, next) => {
                 const currentQty = item.rProduct_name_Units.reduce(
                   (total, unit) =>
                     unit.unit === Rowproduct.stockUnit
-                      ? total + unit.value
+                      ? total + unit.qty
                       : total,
                   0
                 );
@@ -713,7 +713,7 @@ export const updateProduct = async (req, res, next) => {
                   );
                 }
               } else {
-                const Rowproduct = await RowProduct.findById(
+                const Rowproduct = await Product.findById(
                   item.rProduct_name
                 );
                 // console.log("not RawProduct exiting");
@@ -725,7 +725,7 @@ export const updateProduct = async (req, res, next) => {
                       "rProduct_name",
                       "rProduct_name_Units",
                       "Lapse",
-                      item1.value
+                      item1.qty
                     );
                   }
                 });
@@ -751,23 +751,23 @@ export const updateProduct = async (req, res, next) => {
                         (prod) => prod.fProduct_name === product.fProduct_name
                       );
                     if (existingItem) {
-                      const Rowproduct = await RowProduct.findById(
+                      const Rowproduct = await Product.findById(
                         product.fProduct_name
                       );
                       console.log("Final Exiting", existingItem);
-                      console.log("Final ", RowProduct);
+                      console.log("Final ", Rowproduct);
                       const existingQty =
                         existingItem.fProduct_name_Units.reduce(
                           (total, unit) =>
                             unit.unit === Rowproduct.stockUnit
-                              ? total + unit.value
+                              ? total + unit.qty
                               : total,
                           0
                         );
                       const currentQty = product.fProduct_name_Units.reduce(
                         (total, unit) =>
                           unit.unit === Rowproduct.stockUnit
-                            ? total + unit.value
+                            ? total + unit.qty
                             : total,
                         0
                       );
@@ -793,7 +793,7 @@ export const updateProduct = async (req, res, next) => {
                         );
                       }
                     } else {
-                      const Rowproduct = await RowProduct.findById(
+                      const Rowproduct = await Product.findById(
                         product.fProduct_name
                       );
                       // console.log("not  final Product exiting");
@@ -805,7 +805,7 @@ export const updateProduct = async (req, res, next) => {
                             "fProduct_name",
                             "fProduct_name_Units",
                             "Add",
-                            item1.value
+                            item1.qty
                           );
                         }
                       });
@@ -831,7 +831,7 @@ export const updateProduct = async (req, res, next) => {
                         (prod) => prod.wProduct_name === product.wProduct_name
                       );
                     if (existingItem) {
-                      const Rowproduct = await RowProduct.findById(
+                      const Rowproduct = await Product.findById(
                         product.wProduct_name
                       );
                       // console.log("wastage Product exiting", existingItem);
@@ -839,7 +839,7 @@ export const updateProduct = async (req, res, next) => {
                         existingItem.wProduct_name_Units.reduce(
                           (total, unit) =>
                             unit.unit === Rowproduct.stockUnit
-                              ? total + unit.value
+                              ? total + unit.qty
                               : total,
                           0
                         );
@@ -847,7 +847,7 @@ export const updateProduct = async (req, res, next) => {
                       const currentQty = product.wProduct_name_Units.reduce(
                         (total, unit) =>
                           unit.unit === Rowproduct.stockUnit
-                            ? total + unit.value
+                            ? total + unit.qty
                             : total,
                         0
                       );
@@ -874,7 +874,7 @@ export const updateProduct = async (req, res, next) => {
                       }
                     } else {
                       // console.log("not  wastage Product exiting ");
-                      const Rowproduct = await RowProduct.findById(
+                      const Rowproduct = await Product.findById(
                         product.wProduct_name
                       );
                       // console.log("not wastage", Rowproduct);
@@ -892,7 +892,7 @@ export const updateProduct = async (req, res, next) => {
                             "wProduct_name",
                             "wProduct_name_Units",
                             "Add",
-                            item1.value
+                            item1.qty
                           );
                         }
                       });
