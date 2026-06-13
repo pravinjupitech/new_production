@@ -15,8 +15,8 @@ const productionSchema = new mongoose.Schema(
     database: {
       type: String,
     },
-    financeYear:{
-type:String
+    financeYear: {
+      type: String
     },
     product_details: [
       {

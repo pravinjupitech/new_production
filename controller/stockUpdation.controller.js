@@ -10,6 +10,7 @@ import { ClosingStock } from "../model/closingStock.model.js";
 import { warehouseNo } from "../service/invoice.js";
 import { PurchaseOrder } from "../model/purchaseOrder.model.js";
 import { RowProduct } from "../model/rowProduct.model.js";
+import { StartProduction } from "../model/startProduction.model.js";
 
 export const viewInWardStockToWarehouse = async (req, res, next) => {
   try {
@@ -452,45 +453,52 @@ export const deleteStockTransfer = async (req, res) => {
 //   }
 // };
 
+
 export const financeYearWiseReport = async (req, res) => {
   try {
-    const { database,financeYear } = req.params;
+    const { database, financeYear } = req.params;
 
+    const [
+      stockUpdation,
+      products,
+      productionSteps,
+    ] = await Promise.all([
+      StockUpdation.find({
+        database,
+        financeYear,
+        status: { $ne: "Deactive" },
+      }).populate([
+        {
+          path: "productItems.toProductId",
+          model: "product",
+        },
+        {
+          path: "productItems.fromProductId",
+          model: "product",
+        },
+      ]),
 
-    const [stockUpdation, products] =
-      await Promise.all([
+      Product.find({
+        database,
+        status: "Active",
+      }),
 
-        StockUpdation.find({
-          database,
-          financeYear,
-          status: { $ne: "Deactive" },
-        }).populate([
-          {
-            path: "productItems.toProductId",
-            model: "product",
-          },
-          {
-            path: "productItems.fromProductId",
-            model: "product",
-          },
-        ]),
-
-        Product.find({
-          database,
-          status: "Active",
-        }),
-      ]);
+      StartProduction.find({
+        database,
+        financeYear,
+      }),
+    ]);
 
     const productMap = {};
+    const productIdMap = {};
 
-  
     const createProductEntry = (
       productId
     ) => ({
       productId,
 
       Product_Title: "",
-      HSN_Code:"",
+      HSN_Code: "",
 
       oQty: 0,
       openingRate: 0,
@@ -506,106 +514,298 @@ export const financeYearWiseReport = async (req, res) => {
       closingTotal: 0,
     });
 
-    for (const product of products) {
+    // ==========================================
+    // PRODUCT MASTER
+    // ==========================================
 
+    for (const product of products) {
       const productId =
         product._id.toString();
 
+      productIdMap[productId] =
+        product;
+
       if (!productMap[productId]) {
         productMap[productId] =
-          createProductEntry(productId);
+          createProductEntry(
+            productId
+          );
       }
 
-      const entry = productMap[productId];
+      const entry =
+        productMap[productId];
 
       entry.Product_Title =
         product.Product_Title || "";
+
       entry.HSN_Code =
         product.HSN_Code || "";
 
       entry.oQty =
-        Number(product.Opening_Stock) || 0;
+        Number(
+          product.Opening_Stock
+        ) || 0;
 
       entry.openingRate =
-        Number(product.openingRate) || 0;
+        Number(
+          product.openingRate
+        ) || 0;
 
       entry.openingTotal =
-        entry.oQty * entry.openingRate;
+        entry.oQty *
+        entry.openingRate;
     }
 
+    // ==========================================
+    // STOCK TRANSFER
+    // ==========================================
+
     for (const stock of stockUpdation) {
-
-      for (const item of stock.productItems) {
-
+      for (
+        const item of stock.productItems
+      ) {
         const qty =
-          Number(item.transferQty) || 0;
+          Number(
+            item.transferQty
+          ) || 0;
 
         const price =
           Number(item.price) || 0;
 
+        // INWARD
 
         if (item.toProductId) {
-
-          const toProductId =
+          const productId =
             item.toProductId._id.toString();
 
-          if (!productMap[toProductId]) {
-
-            productMap[toProductId] =
+          if (
+            !productMap[productId]
+          ) {
+            productMap[
+              productId
+            ] =
               createProductEntry(
-                toProductId
+                productId
               );
           }
 
-          const inwardEntry =
-            productMap[toProductId];
+          const entry =
+            productMap[
+              productId
+            ];
 
-          inwardEntry.Product_Title =
+          entry.Product_Title =
             item.toProductId
-              ?.Product_Title || "";
-          inwardEntry.HSN_Code =
+              ?.Product_Title ||
+            "";
+
+          entry.HSN_Code =
             item.toProductId
               ?.HSN_Code || "";
 
-          inwardEntry.iQty += qty;
+          entry.iQty += qty;
 
-          inwardEntry.inwardTotal +=
+          entry.inwardTotal +=
             qty * price;
         }
 
-        if (item.fromProductId) {
+        // OUTWARD
 
-          const fromProductId =
+        if (
+          item.fromProductId
+        ) {
+          const productId =
             item.fromProductId._id.toString();
 
-          if (!productMap[fromProductId]) {
-
-            productMap[fromProductId] =
+          if (
+            !productMap[productId]
+          ) {
+            productMap[
+              productId
+            ] =
               createProductEntry(
-                fromProductId
+                productId
               );
           }
 
-          const outwardEntry =
-            productMap[fromProductId];
+          const entry =
+            productMap[
+              productId
+            ];
 
-          outwardEntry.Product_Title =
+          entry.Product_Title =
             item.fromProductId
-              ?.Product_Title || "";
-          outwardEntry.HSN_Code =
+              ?.Product_Title ||
+            "";
+
+          entry.HSN_Code =
             item.fromProductId
               ?.HSN_Code || "";
 
-          outwardEntry.outwardQty +=
+          entry.outwardQty +=
             qty;
         }
       }
     }
 
+    // ==========================================
+    // START PRODUCTION
+    // ==========================================
+
+    for (const production of productionSteps) {
+      for (
+        const detail of production.product_details ||
+        []
+      ) {
+        // ===============================
+        // RAW MATERIAL
+        // OUTWARD
+        // ===============================
+
+        const rawProduct =
+          productIdMap[
+            detail.rProduct_name?.toString()
+          ];
+
+        if (rawProduct) {
+          const productId =
+            rawProduct._id.toString();
+
+          const stockUnit =
+            rawProduct.stockUnit;
+
+          const unitData =
+            (
+              detail.rProduct_name_Units ||
+              []
+            ).find(
+              (u) =>
+                u.unit ===
+                stockUnit
+            );
+
+          if (
+            unitData &&
+            productMap[
+              productId
+            ]
+          ) {
+            productMap[
+              productId
+            ].outwardQty +=
+              Number(
+                unitData.qty
+              ) || 0;
+          }
+        }
+
+        // ===============================
+        // FINISHED PRODUCT
+        // INWARD
+        // ===============================
+
+        for (
+          const finalProduct of detail.finalProductDetails ||
+          []
+        ) {
+          const product =
+            productIdMap[
+              finalProduct.fProduct_name?.toString()
+            ];
+
+          if (!product)
+            continue;
+
+          const productId =
+            product._id.toString();
+
+          const stockUnit =
+            product.stockUnit;
+
+          const unitData =
+            (
+              finalProduct.fProduct_name_Units ||
+              []
+            ).find(
+              (u) =>
+                u.unit ===
+                stockUnit
+            );
+
+          if (
+            unitData &&
+            productMap[
+              productId
+            ]
+          ) {
+            productMap[
+              productId
+            ].iQty +=
+              Number(
+                unitData.qty
+              ) || 0;
+          }
+        }
+
+        // ===============================
+        // WASTAGE PRODUCT
+        // INWARD
+        // ===============================
+
+        for (
+          const wastageProduct of detail.wastageProductDetails ||
+          []
+        ) {
+          const product =
+            productIdMap[
+              wastageProduct.wProduct_name?.toString()
+            ];
+
+          if (!product)
+            continue;
+
+          const productId =
+            product._id.toString();
+
+          const stockUnit =
+            product.stockUnit;
+
+          const unitData =
+            (
+              wastageProduct.wProduct_name_Units ||
+              []
+            ).find(
+              (u) =>
+                u.unit ===
+                stockUnit
+            );
+
+          if (
+            unitData &&
+            productMap[
+              productId
+            ]
+          ) {
+            productMap[
+              productId
+            ].iQty +=
+              Number(
+                unitData.qty
+              ) || 0;
+          }
+        }
+      }
+    }
+
+    // ==========================================
+    // CLOSING STOCK
+    // ==========================================
 
     for (const productId in productMap) {
-
-      const entry = productMap[productId];
+      const entry =
+        productMap[
+          productId
+        ];
 
       entry.closingQty =
         entry.oQty +
@@ -621,7 +821,8 @@ export const financeYearWiseReport = async (req, res) => {
           ? (
               entry.openingTotal +
               entry.inwardTotal
-            ) / totalQty
+            ) /
+            totalQty
           : 0;
 
       entry.closingTotal =
@@ -630,14 +831,15 @@ export const financeYearWiseReport = async (req, res) => {
     }
 
     const stockReport =
-      Object.values(productMap);
+      Object.values(
+        productMap
+      );
 
-  
     const totalSummary =
       stockReport.reduce(
         (acc, item) => {
-
-          acc.Product_Title = "Total";
+          acc.Product_Title =
+            "Total";
 
           acc.oQty +=
             item.oQty || 0;
@@ -646,18 +848,22 @@ export const financeYearWiseReport = async (req, res) => {
             item.iQty || 0;
 
           acc.outwardQty +=
-            item.outwardQty || 0;
+            item.outwardQty ||
+            0;
 
           acc.closingQty +=
-            item.closingQty || 0;
+            item.closingQty ||
+            0;
 
           acc.closingTotal +=
-            item.closingTotal || 0;
+            item.closingTotal ||
+            0;
 
           return acc;
         },
         {
-          Product_Title: "Total",
+          Product_Title:
+            "Total",
           oQty: 0,
           iQty: 0,
           outwardQty: 0,
@@ -670,23 +876,264 @@ export const financeYearWiseReport = async (req, res) => {
       status: true,
       message:
         "Stock report generated successfully",
-
       data: stockReport,
-
       totalSummary,
     });
-
   } catch (error) {
-
     console.error(error);
 
     return res.status(500).json({
       status: false,
-      message: "Internal Server Error",
-      error: error.message,
+      message:
+        "Internal Server Error",
+      error:
+        error.message,
     });
   }
 };
+
+
+
+
+// export const financeYearWiseReport = async (req, res) => {
+//   try {
+//     const { database,financeYear } = req.params;
+
+
+//     const [stockUpdation, products,productionSteps] =
+//       await Promise.all([
+
+//         StockUpdation.find({
+//           database,
+//           financeYear,
+//           status: { $ne: "Deactive" },
+//         }).populate([
+//           {
+//             path: "productItems.toProductId",
+//             model: "product",
+//           },
+//           {
+//             path: "productItems.fromProductId",
+//             model: "product",
+//           },
+//         ]),
+
+//         Product.find({
+//           database,
+//           status: "Active",
+//         }),
+
+//         StartProduction.find({database,financeYear})
+//       ]);
+
+//     const productMap = {};
+
+  
+//     const createProductEntry = (
+//       productId
+//     ) => ({
+//       productId,
+
+//       Product_Title: "",
+//       HSN_Code:"",
+
+//       oQty: 0,
+//       openingRate: 0,
+//       openingTotal: 0,
+
+//       iQty: 0,
+//       inwardTotal: 0,
+
+//       outwardQty: 0,
+
+//       closingQty: 0,
+//       closingRate: 0,
+//       closingTotal: 0,
+//     });
+
+//     for (const product of products) {
+
+//       const productId =
+//         product._id.toString();
+
+//       if (!productMap[productId]) {
+//         productMap[productId] =
+//           createProductEntry(productId);
+//       }
+
+//       const entry = productMap[productId];
+
+//       entry.Product_Title =
+//         product.Product_Title || "";
+//       entry.HSN_Code =
+//         product.HSN_Code || "";
+
+//       entry.oQty =
+//         Number(product.Opening_Stock) || 0;
+
+//       entry.openingRate =
+//         Number(product.openingRate) || 0;
+
+//       entry.openingTotal =
+//         entry.oQty * entry.openingRate;
+//     }
+
+//     for (const stock of stockUpdation) {
+
+//       for (const item of stock.productItems) {
+
+//         const qty =
+//           Number(item.transferQty) || 0;
+
+//         const price =
+//           Number(item.price) || 0;
+
+
+//         if (item.toProductId) {
+
+//           const toProductId =
+//             item.toProductId._id.toString();
+
+//           if (!productMap[toProductId]) {
+
+//             productMap[toProductId] =
+//               createProductEntry(
+//                 toProductId
+//               );
+//           }
+
+//           const inwardEntry =
+//             productMap[toProductId];
+
+//           inwardEntry.Product_Title =
+//             item.toProductId
+//               ?.Product_Title || "";
+//           inwardEntry.HSN_Code =
+//             item.toProductId
+//               ?.HSN_Code || "";
+
+//           inwardEntry.iQty += qty;
+
+//           inwardEntry.inwardTotal +=
+//             qty * price;
+//         }
+
+//         if (item.fromProductId) {
+
+//           const fromProductId =
+//             item.fromProductId._id.toString();
+
+//           if (!productMap[fromProductId]) {
+
+//             productMap[fromProductId] =
+//               createProductEntry(
+//                 fromProductId
+//               );
+//           }
+
+//           const outwardEntry =
+//             productMap[fromProductId];
+
+//           outwardEntry.Product_Title =
+//             item.fromProductId
+//               ?.Product_Title || "";
+//           outwardEntry.HSN_Code =
+//             item.fromProductId
+//               ?.HSN_Code || "";
+
+//           outwardEntry.outwardQty +=
+//             qty;
+//         }
+//       }
+//     }
+
+
+//     for (const productId in productMap) {
+
+//       const entry = productMap[productId];
+
+//       entry.closingQty =
+//         entry.oQty +
+//         entry.iQty -
+//         entry.outwardQty;
+
+//       const totalQty =
+//         entry.oQty +
+//         entry.iQty;
+
+//       entry.closingRate =
+//         totalQty > 0
+//           ? (
+//               entry.openingTotal +
+//               entry.inwardTotal
+//             ) / totalQty
+//           : 0;
+
+//       entry.closingTotal =
+//         entry.closingQty *
+//         entry.closingRate;
+//     }
+
+//     const stockReport =
+//       Object.values(productMap);
+
+  
+//     const totalSummary =
+//       stockReport.reduce(
+//         (acc, item) => {
+
+//           acc.Product_Title = "Total";
+
+//           acc.oQty +=
+//             item.oQty || 0;
+
+//           acc.iQty +=
+//             item.iQty || 0;
+
+//           acc.outwardQty +=
+//             item.outwardQty || 0;
+
+//           acc.closingQty +=
+//             item.closingQty || 0;
+
+//           acc.closingTotal +=
+//             item.closingTotal || 0;
+
+//           return acc;
+//         },
+//         {
+//           Product_Title: "Total",
+//           oQty: 0,
+//           iQty: 0,
+//           outwardQty: 0,
+//           closingQty: 0,
+//           closingTotal: 0,
+//         }
+//       );
+
+//     return res.status(200).json({
+//       status: true,
+//       message:
+//         "Stock report generated successfully",
+
+//       data: stockReport,
+
+//       totalSummary,
+//     });
+
+//   } catch (error) {
+
+//     console.error(error);
+
+//     return res.status(500).json({
+//       status: false,
+//       message: "Internal Server Error",
+//       error: error.message,
+//     });
+//   }
+// };
+
+
 
 export const viewStock = async (req, res) => {
   try {
