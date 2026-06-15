@@ -50,18 +50,26 @@ export const createProduction = async (req, res, next) => {
   }
 };
 
-const updateProductQty = async (productId, productUnits, actionType, res) => {
+const updateProductQty = async (
+  productId,
+  productUnits,
+  actionType,
+  res
+) => {
   const product = await Product.findById(productId);
+
   if (!product) {
-    return res
-      .status(404)
-      .json({ message: "Product not found", status: false });
+    return res.status(404).json({
+      message: "Product not found",
+      status: false,
+    });
   }
+
   for (const unit of productUnits) {
     if (unit.unit === product.stockUnit) {
       if (actionType === "deduct") {
         product.qty -= unit.qty;
-        await product.save();
+
         await productionlapseWarehouse(
           unit.qty,
           product.warehouse,
@@ -70,11 +78,16 @@ const updateProductQty = async (productId, productUnits, actionType, res) => {
       } else if (actionType === "add") {
         product.qty += unit.qty;
 
-        await product.save();
-        await productionAddWarehouse(unit.qty, product.warehouse, productId);
+        await productionAddWarehouse(
+          unit.qty,
+          product.warehouse,
+          productId
+        );
       }
     }
   }
+
+  await product.save();
 };
 
 export const viewProduct = async (req, res, next) => {
@@ -276,642 +289,96 @@ const revertStockUnits = async (units, product, actionType) => {
   }
 };
 
-export const updateProduct = async (req, res, next) => {
+export const updateProduct = async (req, res) => {
   try {
-    const id = req.params.id;
-    const Productfind = await StartProduction.findById(id);
+    const { id } = req.params;
 
-    if (!Productfind) {
-      return res.status(404).json({ message: "Not Found", status: false });
+    const oldProduction = await StartProduction.findById(id);
+
+    if (!oldProduction) {
+      return res.status(404).json({
+        message: "Production not found",
+        status: false,
+      });
     }
-    const { product_details } = req.body;
-    const processRowProductUpdate = async (
-      item,
-      productType,
-      typeUnits,
-      Action,
-      qty
-    ) => {
-      if (item[productType]) {
-        const Rowproduct = await Product.findById(item[productType]);
-        if (Rowproduct) {
-          await Promise.all(
-            item[typeUnits].map(async (data) => {
-              if (data.unit === Rowproduct.stockUnit) {
-                Rowproduct.qty += Action === "Lapse" ? -qty : qty;
-                const warehouseFunc =
-                  Action === "Add"
-                    ? productionAddWarehouse
-                    : productionlapseWarehouse;
-                await warehouseFunc(
-                  Math.abs(qty),
-                  Rowproduct.warehouse,
-                  item[productType]
-                );
-                await Rowproduct.save();
-              }
-            })
-          );
-        }
-      }
-    };
-    const updateProductDetails = async () => {
-      const existingProductDetails = Productfind.product_details;
-      if (product_details.length > existingProductDetails.length) {
-        console.log("Current product list is greater than existing products.");
-        for (let i = 0; i < product_details.length; i++) {
-          const item = product_details[i];
-          const existingItem = existingProductDetails[i];
-          if (!existingItem) {
-            if (item.rProduct_name) {
-              const RowRProduct = await Product.findById(item.rProduct_name);
-              const rProductQtyTotal = item.rProduct_name_Units
-                ? item.rProduct_name_Units.reduce((total, unit) => {
-                  return unit.unit === RowRProduct.stockUnit
-                    ? total + unit.qty
-                    : total;
-                }, 0)
-                : 0;
-              await processRowProductUpdate(
-                item,
-                "rProduct_name",
-                "rProduct_name_Units",
-                "Lapse",
-                rProductQtyTotal
-              );
-            }
 
-            if (item.fProduct_name) {
-              const RowFProduct = await Product.findById(item.fProduct_name);
-              const fProductQtyTotal = item.fProduct_name_Units
-                ? item.fProduct_name_Units.reduce((total, unit) => {
-                  return unit.unit === RowFProduct.stockUnit
-                    ? total + unit.qty
-                    : total;
-                }, 0)
-                : 0;
-              await processRowProductUpdate(
-                item,
-                "fProduct_name",
-                "fProduct_name_Units",
-                "Add",
-                fProductQtyTotal
-              );
-            }
-            if (item.wProduct_name) {
-              const RowWProduct = await Product.findById(item.wProduct_name);
-              const wProductQtyTotal = item.wProduct_name_Units
-                ? item.wProduct_name_Units.reduce((total, unit) => {
-                  return unit.unit === RowWProduct.stockUnit
-                    ? total + unit.qty
-                    : total;
-                }, 0)
-                : 0;
-              await processRowProductUpdate(
-                item,
-                "wProduct_name",
-                "wProduct_name_Units",
-                "Add",
-                wProductQtyTotal
-              );
-            }
-            continue;
-          }
-
-          const processProductType = async (productType, unitType, action) => {
-            if (item[productType] && existingItem[productType]) {
-              const Rowproduct = await Product.findById(item[productType]);
-
-              const existingQty = existingItem[unitType]
-                ? existingItem[unitType].reduce((total, unit) => {
-                  return unit.unit === Rowproduct.stockUnit
-                    ? total + unit.qty
-                    : total;
-                }, 0)
-                : 0;
-              console.log("[productType]", [productType]);
-              console.log("existingQty", existingQty);
-              const currentQty = item[unitType]
-                ? item[unitType].reduce((total, unit) => {
-                  return unit.unit === Rowproduct.stockUnit
-                    ? total + unit.qty
-                    : total;
-                }, 0)
-                : 0;
-              console.log("currentQty", currentQty);
-
-              const qtyDifference = Math.abs(existingQty - currentQty);
-
-              if (existingQty > currentQty) {
-                if (productType === "rProduct_name") {
-                  console.log(
-                    `Existing ${productType} quantity is greater; Adding difference:`,
-                    qtyDifference
-                  );
-                  await processRowProductUpdate(
-                    item,
-                    productType,
-                    unitType,
-                    "Add",
-                    qtyDifference
-                  );
-                } else {
-                  console.log(
-                    `Existing ${productType} quantity is greater; Lapse difference:`,
-                    qtyDifference
-                  );
-                  await processRowProductUpdate(
-                    item,
-                    productType,
-                    unitType,
-                    "Lapse",
-                    qtyDifference
-                  );
-                }
-              } else {
-                if (productType === "rProduct_name") {
-                  console.log(
-                    `Current ${productType} quantity is greater or equal; Lapsing difference:`,
-                    qtyDifference
-                  );
-                  await processRowProductUpdate(
-                    item,
-                    productType,
-                    unitType,
-                    "Lapse",
-                    qtyDifference
-                  );
-                } else {
-                  console.log(
-                    `Current ${productType} quantity is greater or equal; Adding difference:`,
-                    qtyDifference
-                  );
-                  await processRowProductUpdate(
-                    item,
-                    productType,
-                    unitType,
-                    "Add",
-                    qtyDifference
-                  );
-                }
-              }
-            } else {
-              console.log(
-                `Product ${productType} does not match. Lapsing current quantity:`,
-                item[unitType]
-              );
-              const currentQtyTotal = item[unitType]
-                ? item[unitType].reduce((total, unit) => total + unit.qty, 0)
-                : 0;
-              console.log("currentQty", currentQtyTotal);
-              await processRowProductUpdate(
-                item,
-                productType,
-                unitType,
-                "Lapse",
-                currentQtyTotal
-              );
-            }
-          };
-          await processProductType(
-            "rProduct_name",
-            "rProduct_name_Units",
-            "Lapse"
-          );
-          await processProductType(
-            "fProduct_name",
-            "fProduct_name_Units",
-            "Add"
-          );
-          await processProductType(
-            "wProduct_name",
-            "wProduct_name_Units",
-            "Add"
-          );
-        }
-      } else if (product_details.length < existingProductDetails.length) {
-        console.log("Calling existing product greater than current product");
-        for (let i = 0; i < existingProductDetails.length; i++) {
-          const item = existingProductDetails[i];
-          const currentItem = product_details[i];
-          if (!currentItem) {
-            if (item.rProduct_name) {
-              const RowRProduct = await Product.findById(item.rProduct_name);
-              const rProductQtyTotal = item.rProduct_name_Units
-                ? item.rProduct_name_Units.reduce((total, unit) => {
-                  return unit.unit === RowRProduct.stockUnit
-                    ? total + unit.qty
-                    : total;
-                }, 0)
-                : 0;
-              await processRowProductUpdate(
-                item,
-                "rProduct_name",
-                "rProduct_name_Units",
-                "Add",
-                rProductQtyTotal
-              );
-            }
-
-            if (item.fProduct_name) {
-              const RowFProduct = await Product.findById(item.fProduct_name);
-              const fProductQtyTotal = item.fProduct_name_Units
-                ? item.fProduct_name_Units.reduce((total, unit) => {
-                  return unit.unit === RowFProduct.stockUnit
-                    ? total + unit.qty
-                    : total;
-                }, 0)
-                : 0;
-              await processRowProductUpdate(
-                item,
-                "fProduct_name",
-                "fProduct_name_Units",
-                "Lapse",
-                fProductQtyTotal
-              );
-            }
-
-            if (item.wProduct_name) {
-              const RowWProduct = await Product.findById(item.wProduct_name);
-              const wProductQtyTotal = item.wProduct_name_Units
-                ? item.wProduct_name_Units.reduce((total, unit) => {
-                  return unit.unit === RowWProduct.stockUnit
-                    ? total + unit.qty
-                    : total;
-                }, 0)
-                : 0;
-              await processRowProductUpdate(
-                item,
-                "wProduct_name",
-                "wProduct_name_Units",
-                "Lapse",
-                wProductQtyTotal
-              );
-            }
-
-            continue;
-          }
-          const processProductType = async (productType, unitType, action) => {
-            if (item[productType] && currentItem[productType]) {
-              const Rowproduct = await Product.findById(item[productType]);
-
-              const existingQty = currentItem[unitType]
-                ? currentItem[unitType].reduce((total, unit) => {
-                  return unit.unit === Rowproduct.stockUnit
-                    ? total + unit.qty
-                    : total;
-                }, 0)
-                : 0;
-              console.log("[productType]", [productType]);
-              console.log("existingQty", existingQty);
-              const currentQty = item[unitType]
-                ? item[unitType].reduce((total, unit) => {
-                  return unit.unit === Rowproduct.stockUnit
-                    ? total + unit.qty
-                    : total;
-                }, 0)
-                : 0;
-              console.log("currentQty", currentQty);
-
-              const qtyDifference = Math.abs(existingQty - currentQty);
-
-              if (existingQty > currentQty) {
-                if (productType === "rProduct_name") {
-                  console.log(
-                    "Existing quantity is greater; Adding difference:",
-                    qtyDifference
-                  );
-                  await processRowProductUpdate(
-                    item,
-                    productType,
-                    unitType,
-                    "Add",
-                    qtyDifference
-                  );
-                } else {
-                  console.log(
-                    "Existing quantity is greater; Lapse difference:",
-                    qtyDifference
-                  );
-                  await processRowProductUpdate(
-                    item,
-                    productType,
-                    unitType,
-                    "Lapse",
-                    qtyDifference
-                  );
-                }
-              } else {
-                if (productType === "rProduct_name") {
-                  console.log(
-                    "Current quantity is greater or equal; Lapsing difference:",
-                    qtyDifference
-                  );
-                  await processRowProductUpdate(
-                    item,
-                    productType,
-                    unitType,
-                    "Lapse",
-                    qtyDifference
-                  );
-                } else {
-                  console.log(
-                    "Current quantity is greater or equal; Adding difference",
-                    qtyDifference
-                  );
-                  await processRowProductUpdate(
-                    item,
-                    productType,
-                    unitType,
-                    "Add",
-                    qtyDifference
-                  );
-                }
-              }
-            } else {
-              console.log(
-                "Product does not match. Lapsing current quantity:",
-                item[unitType]
-              );
-              const currentQtyTotal = item[unitType]
-                ? item[unitType].reduce((total, unit) => total + unit.value, 0)
-                : 0;
-              console.log("currentQtyTotal", currentQtyTotal);
-              await processRowProductUpdate(
-                item,
-                productType,
-                unitType,
-                "Lapse",
-                currentQtyTotal
-              );
-            }
-          };
-          await processProductType(
-            "rProduct_name",
-            "rProduct_name_Units",
-            "Add"
-          );
-          await processProductType(
-            "fProduct_name",
-            "fProduct_name_Units",
-            "Lapse"
-          );
-          await processProductType(
-            "wProduct_name",
-            "wProduct_name_Units",
-            "Lapse"
-          );
-        }
-      } else {
-        await Promise.all(
-          product_details.map(async (item) => {
-            if (item.rProduct_name && item.rProduct_name_Units.length > 0) {
-              // console.log("existingProductDetails", existingProductDetails);
-              const existingItem = existingProductDetails.find(
-                (prod) => prod.rProduct_name === item.rProduct_name
-              );
-              // console.log("RawProductExitingItem", existingItem);
-              if (existingItem) {
-                // console.log("call existingItem");
-                const Rowproduct = await Product.findById(
-                  item.rProduct_name
-                );
-                const existingQty = existingItem.rProduct_name_Units.reduce(
-                  (total, unit) =>
-                    unit.unit === Rowproduct.stockUnit
-                      ? total + unit.qty
-                      : total,
-                  0
-                );
-                // console.log("RawExitQty", existingQty);
-                const currentQty = item.rProduct_name_Units.reduce(
-                  (total, unit) =>
-                    unit.unit === Rowproduct.stockUnit
-                      ? total + unit.qty
-                      : total,
-                  0
-                );
-                // console.log("RawCurrentQty", currentQty);
-                let qtyDifference = Math.abs(existingQty - currentQty);
-                if (existingQty > currentQty) {
-                  // console.log("Add Raw qty", qtyDifference);
-                  await processRowProductUpdate(
-                    item,
-                    "rProduct_name",
-                    "rProduct_name_Units",
-                    "Add",
-                    qtyDifference
-                  );
-                } else if (currentQty > existingQty) {
-                  // console.log("lapse Raw qty", qtyDifference);
-                  await processRowProductUpdate(
-                    item,
-                    "rProduct_name",
-                    "rProduct_name_Units",
-                    "Lapse",
-                    qtyDifference
-                  );
-                }
-              } else {
-                const Rowproduct = await Product.findById(
-                  item.rProduct_name
-                );
-                // console.log("not RawProduct exiting");
-                // console.log(Rowproduct);
-                item.rProduct_name_Units.map(async (item1) => {
-                  if (Rowproduct.stockUnit == item1.unit) {
-                    await processRowProductUpdate(
-                      item,
-                      "rProduct_name",
-                      "rProduct_name_Units",
-                      "Lapse",
-                      item1.qty
-                    );
-                  }
-                });
-              }
-            }
-            if (
-              item.finalProductDetails &&
-              item?.finalProductDetails.length > 0
-            ) {
-              for (let product of item?.finalProductDetails)
-                if (
-                  product.fProduct_name &&
-                  product.fProduct_name_Units.length > 0
-                ) {
-                  // console.log("productFinal", product.fProduct_name);
-                  // console.log("unitts", product.fProduct_name_Units);
-                  if (
-                    existingProductDetails.finalProductDetails &&
-                    existingProductDetails.finalProductDetails.length > 0
-                  ) {
-                    const existingItem =
-                      existingProductDetails.finalProductDetails.find(
-                        (prod) => prod.fProduct_name === product.fProduct_name
-                      );
-                    if (existingItem) {
-                      const Rowproduct = await Product.findById(
-                        product.fProduct_name
-                      );
-                      console.log("Final Exiting", existingItem);
-                      console.log("Final ", Rowproduct);
-                      const existingQty =
-                        existingItem.fProduct_name_Units.reduce(
-                          (total, unit) =>
-                            unit.unit === Rowproduct.stockUnit
-                              ? total + unit.qty
-                              : total,
-                          0
-                        );
-                      const currentQty = product.fProduct_name_Units.reduce(
-                        (total, unit) =>
-                          unit.unit === Rowproduct.stockUnit
-                            ? total + unit.qty
-                            : total,
-                        0
-                      );
-                      // console.log("current final ", currentQty);
-                      let qtyDifference = Math.abs(existingQty - currentQty);
-                      if (existingQty > currentQty) {
-                        // console.log("lapse final qty", qtyDifference);
-                        await processRowProductUpdate(
-                          product,
-                          "fProduct_name",
-                          "fProduct_name_Units",
-                          "Lapse",
-                          qtyDifference
-                        );
-                      } else if (currentQty > existingQty) {
-                        // console.log("add final qty", qtyDifference);
-                        await processRowProductUpdate(
-                          product,
-                          "fProduct_name",
-                          "fProduct_name_Units",
-                          "Add",
-                          qtyDifference
-                        );
-                      }
-                    } else {
-                      const Rowproduct = await Product.findById(
-                        product.fProduct_name
-                      );
-                      // console.log("not  final Product exiting");
-                      // console.log("final ", Rowproduct);
-                      product.fProduct_name_Units.map(async (item1) => {
-                        if (Rowproduct.stockUnit == item1.unit) {
-                          await processRowProductUpdate(
-                            product,
-                            "fProduct_name",
-                            "fProduct_name_Units",
-                            "Add",
-                            item1.qty
-                          );
-                        }
-                      });
-                    }
-                  }
-                }
-            }
-            if (
-              item?.wastageProductDetails &&
-              item?.wastageProductDetails.length > 0
-            ) {
-              for (let product of item?.wastageProductDetails) {
-                if (
-                  product.wProduct_name &&
-                  product.wProduct_name_Units.length > 0
-                ) {
-                  if (
-                    existingProductDetails.wastageProductDetails &&
-                    existingProductDetails.wastageProductDetails.length > 0
-                  ) {
-                    const existingItem =
-                      existingProductDetails?.wastageProductDetails.find(
-                        (prod) => prod.wProduct_name === product.wProduct_name
-                      );
-                    if (existingItem) {
-                      const Rowproduct = await Product.findById(
-                        product.wProduct_name
-                      );
-                      // console.log("wastage Product exiting", existingItem);
-                      const existingQty =
-                        existingItem.wProduct_name_Units.reduce(
-                          (total, unit) =>
-                            unit.unit === Rowproduct.stockUnit
-                              ? total + unit.qty
-                              : total,
-                          0
-                        );
-                      // console.log("wastage existingQty", existingQty);
-                      const currentQty = product.wProduct_name_Units.reduce(
-                        (total, unit) =>
-                          unit.unit === Rowproduct.stockUnit
-                            ? total + unit.qty
-                            : total,
-                        0
-                      );
-                      // console.log("currentQty", currentQty);
-                      let qtyDifference = Math.abs(existingQty - currentQty);
-                      if (existingQty > currentQty) {
-                        // console.log("lapse wastage qty", qtyDifference);
-                        await processRowProductUpdate(
-                          product,
-                          "wProduct_name",
-                          "wProduct_name_Units",
-                          "Lapse",
-                          qtyDifference
-                        );
-                      } else if (currentQty > existingQty) {
-                        // console.log("Add wastage qty  ", qtyDifference);
-                        await processRowProductUpdate(
-                          product,
-                          "wProduct_name",
-                          "wProduct_name_Units",
-                          "Add",
-                          qtyDifference
-                        );
-                      }
-                    } else {
-                      // console.log("not  wastage Product exiting ");
-                      const Rowproduct = await Product.findById(
-                        product.wProduct_name
-                      );
-                      // console.log("not wastage", Rowproduct);
-                      // console.log("wastage", Rowproduct);
-                      product.wProduct_name_Units.map(async (item1) => {
-                        if (Rowproduct.stockUnit == item1.unit) {
-                          // console.log(
-                          //   "Wastaage",
-                          //   Rowproduct.stockUnit,
-                          //   item1.unit,
-                          //   item1.value
-                          // );
-                          await processRowProductUpdate(
-                            product,
-                            "wProduct_name",
-                            "wProduct_name_Units",
-                            "Add",
-                            item1.qty
-                          );
-                        }
-                      });
-                    }
-                  }
-                }
-              }
-            }
-          })
+    // Restore old stock
+    for (const item of oldProduction.product_details) {
+      if (item.rProduct_name) {
+        await updateProductQty(
+          item.rProduct_name,
+          item.rProduct_name_Units,
+          "add",
+          res
         );
       }
-    };
-    await updateProductDetails();
-    const updateData = { product_details };
-    await StartProduction.findByIdAndUpdate(id, updateData, { new: true });
-    res.status(200).json({ message: "Data Updated", status: true });
+
+      for (const finalItem of item.finalProductDetails || []) {
+        await updateProductQty(
+          finalItem.fProduct_name,
+          finalItem.fProduct_name_Units,
+          "deduct",
+          res
+        );
+      }
+
+      for (const wasteItem of item.wastageProductDetails || []) {
+        await updateProductQty(
+          wasteItem.wProduct_name,
+          wasteItem.wProduct_name_Units,
+          "deduct",
+          res
+        );
+      }
+    }
+
+    // Apply new stock
+    for (const item of req.body.product_details) {
+      if (item.rProduct_name) {
+        await updateProductQty(
+          item.rProduct_name,
+          item.rProduct_name_Units,
+          "deduct",
+          res
+        );
+      }
+
+      for (const finalItem of item.finalProductDetails || []) {
+        await updateProductQty(
+          finalItem.fProduct_name,
+          finalItem.fProduct_name_Units,
+          "add",
+          res
+        );
+      }
+
+      for (const wasteItem of item.wastageProductDetails || []) {
+        await updateProductQty(
+          wasteItem.wProduct_name,
+          wasteItem.wProduct_name_Units,
+          "add",
+          res
+        );
+      }
+    }
+
+    const updated = await StartProduction.findByIdAndUpdate(
+      id,
+      req.body,
+      { new: true }
+    );
+
+    return res.status(200).json({
+      message: "Data Updated",
+      status: true,
+      data: updated,
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Internal Server Error", status: false });
+    return res.status(500).json({
+      message: "Internal Server Error",
+      status: false,
+    });
   }
 };
 
