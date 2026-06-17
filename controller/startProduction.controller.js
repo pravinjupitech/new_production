@@ -94,6 +94,7 @@ export const viewProduct = async (req, res, next) => {
   try {
     const product = await StartProduction.find({
       database: req.params.database,
+      financeYear:req.params.financeYear
     })
       .sort({ sortorder: -1 })
       .populate({ path: "product_details.user_name", model: "user" })
