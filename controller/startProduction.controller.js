@@ -315,12 +315,12 @@ export const updateProduct = async (req, res) => {
       }
 
       for (const finalItem of item.finalProductDetails || []) {
-        await updateProductQty(
+        if(finalItem?.fProduct_name) { await updateProductQty(
           finalItem.fProduct_name,
           finalItem.fProduct_name_Units,
           "deduct",
           res
-        );
+        );}
       }
 
       for (const wasteItem of item.wastageProductDetails || []) {
@@ -347,12 +347,12 @@ export const updateProduct = async (req, res) => {
       }
 
       for (const finalItem of item.finalProductDetails || []) {
-        await updateProductQty(
+      if(finalItem?.fProduct_name) { await updateProductQty(
           finalItem.fProduct_name,
           finalItem.fProduct_name_Units,
           "add",
           res
-        );
+        );}
       }
 
       for (const wasteItem of item.wastageProductDetails || []) {
@@ -360,7 +360,7 @@ export const updateProduct = async (req, res) => {
           await updateProductQty(
             wasteItem.wProduct_name,
             wasteItem.wProduct_name_Units,
-            "deduct",
+            "add",
             res
           );
         }
