@@ -94,7 +94,7 @@ export const viewProduct = async (req, res, next) => {
   try {
     const product = await StartProduction.find({
       database: req.params.database,
-      financeYear:req.params.financeYear
+      financeYear: req.params.financeYear
     })
       .sort({ sortorder: -1 })
       .populate({ path: "product_details.user_name", model: "user" })
@@ -324,12 +324,14 @@ export const updateProduct = async (req, res) => {
       }
 
       for (const wasteItem of item.wastageProductDetails || []) {
-        await updateProductQty(
-          wasteItem.wProduct_name,
-          wasteItem.wProduct_name_Units,
-          "deduct",
-          res
-        );
+        if (wasteItem?.wProduct_name) {
+          await updateProductQty(
+            wasteItem.wProduct_name,
+            wasteItem.wProduct_name_Units,
+            "deduct",
+            res
+          );
+        }
       }
     }
 
@@ -354,12 +356,14 @@ export const updateProduct = async (req, res) => {
       }
 
       for (const wasteItem of item.wastageProductDetails || []) {
-        await updateProductQty(
-          wasteItem.wProduct_name,
-          wasteItem.wProduct_name_Units,
-          "add",
-          res
-        );
+        if (wasteItem?.wProduct_name) {
+          await updateProductQty(
+            wasteItem.wProduct_name,
+            wasteItem.wProduct_name_Units,
+            "deduct",
+            res
+          );
+        }
       }
     }
 
