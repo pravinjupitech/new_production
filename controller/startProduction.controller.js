@@ -315,12 +315,14 @@ export const updateProduct = async (req, res) => {
       }
 
       for (const finalItem of item.finalProductDetails || []) {
-        if(finalItem?.fProduct_name) { await updateProductQty(
-          finalItem.fProduct_name,
-          finalItem.fProduct_name_Units,
-          "deduct",
-          res
-        );}
+        if (finalItem?.fProduct_name) {
+          await updateProductQty(
+            finalItem.fProduct_name,
+            finalItem.fProduct_name_Units,
+            "deduct",
+            res
+          );
+        }
       }
 
       for (const wasteItem of item.wastageProductDetails || []) {
@@ -347,12 +349,14 @@ export const updateProduct = async (req, res) => {
       }
 
       for (const finalItem of item.finalProductDetails || []) {
-      if(finalItem?.fProduct_name) { await updateProductQty(
-          finalItem.fProduct_name,
-          finalItem.fProduct_name_Units,
-          "add",
-          res
-        );}
+        if (finalItem?.fProduct_name) {
+          await updateProductQty(
+            finalItem.fProduct_name,
+            finalItem.fProduct_name_Units,
+            "add",
+            res
+          );
+        }
       }
 
       for (const wasteItem of item.wastageProductDetails || []) {
@@ -973,5 +977,53 @@ export const demoCodes = async (req, res, next) => {
     return res
       .status(500)
       .json({ error: "Internal Server Error", status: false });
+  }
+};
+
+export const wastageProductReport = async (req, res, next) => {
+  try {
+    const { database, financeYear } = req.params;
+
+    const allData = await StartProduction.find({
+      database,
+      financeYear,
+    }).populate({
+      path: "product_details.wastageProductDetails.wProduct_name",
+      model: "product",
+    });
+
+    if (allData.length === 0) {
+      return res.status(404).json({
+        message: "Data Not Found",
+        status: false,
+      });
+    }
+
+    const wastageProducts = [];
+
+    allData.forEach((production) => {
+      production.product_details?.forEach((product) => {
+        product.wastageProductDetails?.forEach((wastage) => {
+          wastageProducts.push({
+            date: production.date,
+            productName: wastage.wProduct_name?.productName,
+            productSection: wastage.wProduct_name?.productSection,
+            units: wastage.wProduct_name_Units,
+          });
+        });
+      });
+    });
+
+    return res.status(200).json({
+      status: true,
+      message: "Wastage Product Report",
+      data: wastageProducts,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: "Internal Server Error",
+      status: false,
+    });
   }
 };
