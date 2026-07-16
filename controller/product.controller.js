@@ -258,8 +258,6 @@ export const DeleteProduct = async (req, res, next) => {
 export const UpdateProduct = async (req, res, next) => {
   try {
 
-    console.log("purchaseRate", req.body);
-
     let groupDiscount = 0;
 
     if (req.files && req.files.length > 0) {
@@ -273,20 +271,35 @@ export const UpdateProduct = async (req, res, next) => {
       req.body.Product_image = images;
 
     }
+const productId = req.params.id;
 
-    const productId = req.params.id;
+const existingProduct = await Product.findById(productId);
 
-    const existingProduct = await Product.findById(productId);
+if (!existingProduct) {
+  return res.status(404).json({
+    error: "Product not found",
+    status: false,
+  });
+}
 
-    if (!existingProduct) {
+if (existingProduct.productType === "Parent") {
+  const products = await Product.find({
+    database: existingProduct.database,
+    status: "Active",
+    category: existingProduct.category,
+    SubCategory: existingProduct.SubCategory,
+    productType: "Child", // optional if only child products
+  });
 
-      return res.status(404).json({
-        error: "product not found",
-        status: false,
-      });
+  for (const item of products) {
+    item.Units = item.Units.map((childUnit, index) => ({
+      ...childUnit.toObject(),
+      unit: existingProduct.Units[index]?.unit || childUnit.unit,
+    }));
 
-    }
-
+    await item.save();
+  }
+}
     const group = await CustomerGroup.find({
       database: existingProduct.database,
       status: "Active",
