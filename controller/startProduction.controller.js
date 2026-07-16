@@ -1007,7 +1007,7 @@ export const wastageProductReport = async (req, res, next) => {
           wastageProducts.push({
             date: production.date,
             productName: wastage.wProduct_name?.productName,
-            productSection: wastage.wProduct_name?.step_Name,
+            productSection: production.processName,
             units: wastage.wProduct_name_Units,
           });
         });
