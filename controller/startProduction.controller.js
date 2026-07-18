@@ -245,6 +245,8 @@ const handleProductRevert = async (item) => {
     for (let item1 of item?.finalProductDetails) {
       if (item1?.fProduct_name && item1?.fProduct_name_Units?.length > 0) {
         const Rowproduct = await Product.findById(item1?.fProduct_name);
+        console.log("row",RowProduct);
+        
         await revertStockUnits(
           item1?.fProduct_name_Units,
           Rowproduct,
@@ -270,6 +272,8 @@ const handleProductRevert = async (item) => {
 const revertStockUnits = async (units, product, actionType) => {
   if (units.length > 0) {
     for (const unit of units) {
+      console.log("product.stockUnit",product.stockUnit);
+      
       if (unit.unit === product.stockUnit) {
         product.qty =
           actionType === "add"
