@@ -1031,3 +1031,48 @@ export const wastageProductReport = async (req, res, next) => {
     });
   }
 };
+
+export const workerReport = async (req, res) => {
+  try {
+    const { financeYear, workerId } = req.params;
+
+    const report = await StartProduction.aggregate([
+      {
+        $match: {
+          financeYear: financeYear,
+        },
+      },
+      {
+        $unwind: "$product_details",
+      },
+      {
+        $match: {
+          "product_details.user_name": workerId,
+          "product_details.status": "Completed",
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          processName: 1,
+          step_name: 1,
+          financeYear: 1,
+          database: 1,
+          date: 1,
+          product_details: 1,
+        },
+      },
+    ]);
+
+    return res.status(200).json({
+      status: true,
+      report,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      status: false,
+      error: "Internal Server Error",
+    });
+  }
+};
