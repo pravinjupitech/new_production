@@ -9,6 +9,7 @@ import {
   viewByIdProduct,
   viewProduct,
   wastageProductReport,
+  workerReport,
 } from "../controller/startProduction.controller.js";
 const router = express.Router();
 
@@ -21,4 +22,5 @@ router.delete("/delete-nested-data/:id/:innerId", deleteNestedProduct);
 router.put("/nested-update-production/:id/:innerId", NestedUpdateProduct);
 router.get("/current-target-product/:id", productTarget);
 router.get("/wastage-report/:database/:financeYear",wastageProductReport)
+router.get("/worker-report/:financeYear/:workerId",workerReport)
 export default router;
