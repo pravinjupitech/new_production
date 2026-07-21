@@ -12,6 +12,9 @@ const productionSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    completeDate:{
+            type: Date,
+    },
     database: {
       type: String,
     },
