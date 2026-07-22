@@ -1036,10 +1036,10 @@ export const workerReport = async (req, res) => {
   try {
     const { financeYear, workerId } = req.params;
 
-    const report = await StartProduction.aggregate([
+    let report = await StartProduction.aggregate([
       {
         $match: {
-          financeYear: financeYear,
+          financeYear,
         },
       },
       {
@@ -1053,7 +1053,6 @@ export const workerReport = async (req, res) => {
       },
       {
         $project: {
-          _id: 1,
           processName: 1,
           step_name: 1,
           financeYear: 1,
@@ -1061,6 +1060,21 @@ export const workerReport = async (req, res) => {
           date: 1,
           product_details: 1,
         },
+      },
+    ]);
+
+    report = await StartProduction.populate(report, [
+      {
+        path: "product_details.rProduct_name",
+        model: "product",
+      },
+      {
+        path: "product_details.finalProductDetails.fProduct_name",
+        model: "product",
+      },
+      {
+        path: "product_details.wastageProductDetails.wProduct_name",
+        model: "product",
       },
     ]);
 
@@ -1076,3 +1090,4 @@ export const workerReport = async (req, res) => {
     });
   }
 };
+
