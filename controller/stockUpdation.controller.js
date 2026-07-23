@@ -499,7 +499,7 @@ export const financeYearWiseReport = async (req, res) => {
 
       Product_Title: "",
       HSN_Code: "",
-
+category:"",
       oQty: 0,
       openingRate: 0,
       openingTotal: 0,
@@ -537,7 +537,7 @@ export const financeYearWiseReport = async (req, res) => {
 
       entry.Product_Title =
         product.Product_Title || "";
-
+entry.category=product.category||"";
       entry.HSN_Code =
         product.HSN_Code || "";
 
@@ -598,7 +598,7 @@ export const financeYearWiseReport = async (req, res) => {
             item.toProductId
               ?.Product_Title ||
             "";
-
+entry.category=item.toProductId?.category||"";
           entry.HSN_Code =
             item.toProductId
               ?.HSN_Code || "";
@@ -637,7 +637,7 @@ export const financeYearWiseReport = async (req, res) => {
             item.fromProductId
               ?.Product_Title ||
             "";
-
+entry.category=item.fromProductId?.category||"";
           entry.HSN_Code =
             item.fromProductId
               ?.HSN_Code || "";
