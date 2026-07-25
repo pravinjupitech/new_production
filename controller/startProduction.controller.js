@@ -2,6 +2,7 @@ import { Product } from "../model/product.model.js";
 import { RowProduct } from "../model/rowProduct.model.js";
 import { StartProduction } from "../model/startProduction.model.js";
 import { Warehouse } from "../model/warehouse.model.js";
+import { WorkerTarget } from "../model/workerTarget.model.js";
 
 export const createProduction = async (req, res, next) => {
   try {
@@ -245,8 +246,8 @@ const handleProductRevert = async (item) => {
     for (let item1 of item?.finalProductDetails) {
       if (item1?.fProduct_name && item1?.fProduct_name_Units?.length > 0) {
         const Rowproduct = await Product.findById(item1?.fProduct_name);
-        console.log("row",RowProduct);
-        
+        console.log("row", RowProduct);
+
         await revertStockUnits(
           item1?.fProduct_name_Units,
           Rowproduct,
@@ -272,8 +273,8 @@ const handleProductRevert = async (item) => {
 const revertStockUnits = async (units, product, actionType) => {
   if (units.length > 0) {
     for (const unit of units) {
-      console.log("product.stockUnit",product.stockUnit);
-      
+      console.log("product.stockUnit", product.stockUnit);
+
       if (unit.unit === product.stockUnit) {
         product.qty =
           actionType === "add"
@@ -1091,3 +1092,43 @@ export const workerReport = async (req, res) => {
   }
 };
 
+export const workerTarget = async (req, res, next) => {
+  try {
+    const target = await WorkerTarget.create(req.body);
+    return target ? res.status(200).json({ message: "Data Saved", status: true }) : res.status(400).json({ message: "Something Went Wrong", status: false })
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      status: false,
+      error: "Internal Server Error",
+    });
+  }
+}
+
+export const listOfWorkerTarget = async (req, res, next) => {
+  try {
+    const { database, financeYear } = req.params;
+    const targets = await WorkerTarget.find({ database, finanaceYear })
+    return targets.length > 0 ? res.status(200).json({ message: "Data Found", targets, status: true }) : res.status(400).json({ message: "Bad Request", status: false })
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      status: false,
+      error: "Internal Server Error",
+    });
+  }
+}
+
+export const deleteWorkerTarget = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const target = await WorkerTarget.findByIdAndDelete(id)
+    return target ? res.status(200).json({ message: "Data Deleted", status: true }) : res.status(400).json({ message: "Not Found", status: false })
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      status: false,
+      error: "Internal Server Error",
+    });
+  }
+}
