@@ -98,6 +98,7 @@ const ProductSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    productDetails:[],
     Opening_Stock: {
       type: Number,
     },
