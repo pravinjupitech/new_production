@@ -119,7 +119,7 @@ export const SaveProduct = async (req, res) => {
       req.body.qty = req.body.Opening_Stock;
     }
 
-if(req.body.productDetails>0){
+if(req.body.productDetails.length>0){
           req.body.productDetails = JSON.parse(req.body.productDetails);
 
 }
@@ -372,7 +372,7 @@ if (existingProduct.productType === "Parent") {
     req.body.SalesRate = Number(
       (req.body.SalesRate || 0).toFixed(2)
     );
-if(req.body.productDetails>0){
+if(req.body.productDetails.length>0){
           req.body.productDetails = JSON.parse(req.body.productDetails);
 
 }
