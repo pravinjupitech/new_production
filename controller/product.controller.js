@@ -119,7 +119,7 @@ export const SaveProduct = async (req, res) => {
       req.body.qty = req.body.Opening_Stock;
     }
 
-if(req.body.productDetails>0){
+if(req.body.productDetails.length>0){
           req.body.productDetails = JSON.parse(req.body.productDetails);
 
 }
