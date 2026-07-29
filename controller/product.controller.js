@@ -113,13 +113,16 @@ export const SaveProduct = async (req, res) => {
     req.body.Product_MRP = Number(
       (req.body.Product_MRP || 0).toFixed(2)
     );
-
+ 
 
     if (req.body.Opening_Stock > 0) {
       req.body.qty = req.body.Opening_Stock;
     }
 
+if(req.body.productDetails>0){
+          req.body.productDetails = JSON.parse(req.body.productDetails);
 
+}
     if (req.body.Units) {
 
       try {
@@ -369,7 +372,10 @@ if (existingProduct.productType === "Parent") {
     req.body.SalesRate = Number(
       (req.body.SalesRate || 0).toFixed(2)
     );
+if(req.body.productDetails>0){
+          req.body.productDetails = JSON.parse(req.body.productDetails);
 
+}
     req.body.Product_MRP = Number(
       (req.body.Product_MRP || 0).toFixed(2)
     );
