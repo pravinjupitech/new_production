@@ -1,20 +1,80 @@
 import mongoose from "mongoose";
 
-const WorkerSchema = new mongoose.Schema({
+const ProductSchema = new mongoose.Schema(
+  {
+    productId: {
+      type: String,
+      required: true,
+    },
+    productName: {
+      type: String,
+      required: true,
+    },
+    targetQty: {
+      type: Number,
+      required: true,
+    },
+    productDetails: {
+      bagQty: {
+        type: Number,
+        default: 0,
+      },
+      bagWeight: {
+        type: Number,
+        default: 0,
+      },
+      bundleSqInch: {
+        type: Number,
+        default: 0,
+      },
+      bundleWeight: {
+        type: Number,
+        default: 0,
+      },
+      pieceSqInch: {
+        type: Number,
+        default: 0,
+      },
+      pieceWeight: {
+        type: Number,
+        default: 0,
+      },
+    },
+  },
+  { _id: false }
+);
+
+const WorkerSchema = new mongoose.Schema(
+  {
     database: {
-        type: String
+      type: String,
+      required: true,
     },
     workerId: {
-        type: String
+      type: String,
+      required: true,
     },
-    finanaceYear: {
-        type: String
+    financialYear: {
+      type: String,
+      required: true,
     },
-    products:[],
+    month: {
+      type: String,
+      required: true,
+    },
+    products: {
+      type: [ProductSchema],
+      default: [],
+    },
     status: {
-        type: String,
-        default: "Active"
-    }
-}, { timestamps: true })
+      type: String,
+      default: "Active",
+    },
+  },
+  { timestamps: true }
+);
 
-export const WorkerTarget = mongoose.model("workerTarget", WorkerSchema)
+export const WorkerTarget = mongoose.model(
+  "workerTarget",
+  WorkerSchema
+);
