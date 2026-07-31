@@ -52,7 +52,6 @@ const WorkerSchema = new mongoose.Schema(
     },
     workerId: {
       type: String,
-      required: true,
     },
     financialYear: {
       type: String,
