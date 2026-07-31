@@ -50,10 +50,10 @@ const WorkerSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    workerId: {
-      type: String,
-      required: true,
-    },
+    // workerId: {
+    //   type: String,
+    //   required: true,
+    // },
     financialYear: {
       type: String,
       required: true,
