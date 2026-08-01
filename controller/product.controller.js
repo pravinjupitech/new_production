@@ -258,221 +258,92 @@ export const DeleteProduct = async (req, res, next) => {
   }
 };
 
-export const UpdateProduct = async (req, res, next) => {
-  try {
-console.log("request.body",req.body)
-    let groupDiscount = 0;
-
-    if (req.files && req.files.length > 0) {
-
-      let images = [];
-
-      req.files.map((file) => {
-        images.push(file.filename);
-      });
-
-      req.body.Product_image = images;
-
-    }
 const productId = req.params.id;
+
+// Parse multipart JSON fields FIRST
+if (req.body.Units && typeof req.body.Units === "string") {
+  try {
+    req.body.Units = JSON.parse(req.body.Units);
+  } catch (err) {
+    return res.status(400).json({
+      status: false,
+      message: "Invalid Units JSON",
+    });
+  }
+}
+
+if (
+  req.body.productDetails &&
+  typeof req.body.productDetails === "string"
+) {
+  try {
+    req.body.productDetails = JSON.parse(req.body.productDetails);
+  } catch (err) {
+    return res.status(400).json({
+      status: false,
+      message: "Invalid productDetails JSON",
+    });
+  }
+}
+
+if (
+  req.body.productCosting &&
+  typeof req.body.productCosting === "string"
+) {
+  try {
+    req.body.productCosting = JSON.parse(req.body.productCosting);
+  } catch (err) {
+    req.body.productCosting = [];
+  }
+}
 
 const existingProduct = await Product.findById(productId);
 
 if (!existingProduct) {
   return res.status(404).json({
-    error: "Product not found",
     status: false,
+    message: "Product not found",
   });
 }
 
+// If parent, update all child products
 if (existingProduct.productType === "Parent") {
-
   await Product.updateMany(
     {
       database: existingProduct.database,
-      status: "Active",
       category: existingProduct.category,
       SubCategory: existingProduct.SubCategory,
       productType: "Child",
+      status: "Active",
     },
     {
       $set: {
         Units: req.body.Units,
         productDetails: req.body.productDetails,
+        primaryUnit: req.body.primaryUnit,
+        secondaryUnit: req.body.secondaryUnit,
+        secondarySize: Number(req.body.secondarySize || 0),
+        stockUnit: req.body.stockUnit,
       },
     }
   );
-
 }
-    const group = await CustomerGroup.find({
-      database: existingProduct.database,
-      status: "Active",
-    });
 
-    if (group.length > 0) {
-
-      const maxDiscount = group.reduce((max, item) => {
-        return item.discount > max.discount ? item : max;
-      });
-
-      groupDiscount = Number(maxDiscount.discount || 0);
-
-    }
-
-    req.body.Purchase_Rate = Number(
-      req.body.Purchase_Rate || existingProduct.Purchase_Rate || 0
-    );
-
-    req.body.GSTRate = Number(
-      req.body.GSTRate || existingProduct.GSTRate || 0
-    );
-
-    req.body.ProfitPercentage = Number(
-      req.body.ProfitPercentage || 0
-    );
-
-    req.body.Opening_Stock = Number(
-      req.body.Opening_Stock || existingProduct.Opening_Stock || 0
-    );
-
-    if (req.body.Purchase_Rate > existingProduct.landedCost) {
-
-      req.body.landedCost = req.body.Purchase_Rate;
-
-    } else {
-
-      req.body.landedCost =
-        existingProduct.landedCost || req.body.Purchase_Rate;
-
-    }
-
-    const purchaseRate = req.body.Purchase_Rate;
-    const gstRate = req.body.GSTRate;
-    const profitPercentage = req.body.ProfitPercentage;
-    const discount = groupDiscount;
-
-    if (profitPercentage === 0) {
-
-      req.body.ProfitPercentage = 3;
-
-      req.body.SalesRate = purchaseRate * 1.03;
-
-    } else {
-
-      req.body.SalesRate =
-        purchaseRate +
-        (purchaseRate * profitPercentage / 100);
-
-    }
-
-    req.body.Product_MRP =
-      req.body.SalesRate *
-      (1 + gstRate / 100) *
-      (1 + discount / 100);
-
-    req.body.SalesRate = Number(
-      (req.body.SalesRate || 0).toFixed(2)
-    );
-if(req.body.productDetails.length>0){
-          req.body.productDetails = JSON.parse(req.body.productDetails);
-
-}
-    req.body.Product_MRP = Number(
-      (req.body.Product_MRP || 0).toFixed(2)
-    );
-
-    if (isNaN(req.body.Product_MRP)) {
-
-      return res.status(400).json({
-        message: "Invalid Product_MRP",
-        status: false,
-      });
-
-    }
-
-    if (isNaN(req.body.SalesRate)) {
-
-      return res.status(400).json({
-        message: "Invalid SalesRate",
-        status: false,
-      });
-
-    }
-
-    if (
-      existingProduct.Opening_Stock !== req.body.Opening_Stock
-    ) {
-
-      const qty =
-        req.body.Opening_Stock -
-        existingProduct.Opening_Stock;
-
-      req.body.qty = existingProduct.qty + qty;
-
-      await addProductInWarehouse(
-        req.body,
-        req.body.warehouse,
-        existingProduct
-      );
-
-    }
-
-    if (req.body.Units) {
-
-      try {
-
-        req.body.Units = JSON.parse(req.body.Units);
-
-      } catch (err) {
-
-        req.body.Units = [];
-
-      }
-
-    }
-
-    if (req.body.productCosting) {
-
-      try {
-
-        req.body.productCosting = JSON.parse(
-          req.body.productCosting
-        );
-
-      } catch (err) {
-
-        req.body.productCosting = [];
-
-      }
-
-    }
-
-    console.log("updatedProduct", req.body);
-
-    const product = await Product.findByIdAndUpdate(
-      productId,
-      req.body,
-      { new: true }
-    );
-
-    return res.status(200).json({
-      message: "Product Updated Successfully",
-      status: true,
-      product,
-    });
-
-  } catch (err) {
-
-    console.error(err);
-
-    return res.status(500).json({
-      error: "Internal Server Error",
-      status: false,
-    });
-
+// Update parent
+const product = await Product.findByIdAndUpdate(
+  productId,
+  req.body,
+  {
+    new: true,
+    runValidators: true,
   }
-};
+);
 
+return res.status(200).json({
+  status: true,
+  message: "Product Updated Successfully",
+  product,
+});
 export const StockAlert1 = async (req, res) => {
   try {
     const warehouses = await Warehouse.find({ database: req.params.database });
