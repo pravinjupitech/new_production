@@ -29,8 +29,8 @@ const ProductSchema = new mongoose.Schema(
     stockUnit: {
       type: String,
     },
-    productType:{
-      type:String
+    productType: {
+      type: String
     },
     category: {
       type: String,
@@ -98,7 +98,6 @@ const ProductSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    productDetails:[],
     Opening_Stock: {
       type: Number,
     },
@@ -111,8 +110,8 @@ const ProductSchema = new mongoose.Schema(
     landedCost: {
       type: Number,
     },
-    openingRate:{
-type:Number
+    openingRate: {
+      type: Number
     },
     SalesRate: {
       type: Number,
@@ -120,7 +119,32 @@ type:Number
     ProfitPercentage: {
       type: Number,
     },
-    Units: [],
+    Units: [
+      {
+        unit: {
+          type: String,
+        },
+        qty: {
+          type: Number,
+        },
+      },
+    ],
+
+    productDetails: [
+      {
+        productId: String,
+        pieceWeight: Number,
+        pieceSqInch: Number,
+        bundleQty: Number,
+        bundleWeight: Number,
+        bundleSqInch: Number,
+        bundleinBag: Number,
+        bagWeight: Number,
+        bagQty: Number,
+        wastageSqInch: Number,
+      },
+    ],
+
     producttype: {
       type: String
     },
