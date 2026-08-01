@@ -2,7 +2,7 @@ import { Product } from "../model/product.model.js";
 import { RowProduct } from "../model/rowProduct.model.js";
 import { StartProduction } from "../model/startProduction.model.js";
 import { Warehouse } from "../model/warehouse.model.js";
-import { WorkerTarget } from "../model/workerTarget.model.js";
+import { WorkerTarget } from "../model/ProductionTarget.model.js";
 
 export const createProduction = async (req, res, next) => {
   try {
@@ -1092,9 +1092,9 @@ export const workerReport = async (req, res) => {
   }
 };
 
-export const workerTarget = async (req, res, next) => {
+export const ProductionTarget = async (req, res, next) => {
   try {
-    const target = await WorkerTarget.create(req.body);
+    const target = await ProductionTarget.create(req.body);
     return target ? res.status(200).json({ message: "Data Saved", status: true }) : res.status(400).json({ message: "Something Went Wrong", status: false })
   } catch (error) {
     console.error(error);
@@ -1105,10 +1105,10 @@ export const workerTarget = async (req, res, next) => {
   }
 }
 
-export const listOfWorkerTarget = async (req, res, next) => {
+export const listOfProductionTarget = async (req, res, next) => {
   try {
     const { database, financeYear } = req.params;
-    const targets = await WorkerTarget.find({ database, finanaceYear })
+    const targets = await ProductionTarget.find({ database, finanaceYear })
     return targets.length > 0 ? res.status(200).json({ message: "Data Found", targets, status: true }) : res.status(400).json({ message: "Bad Request", status: false })
   } catch (error) {
     console.error(error);
@@ -1119,10 +1119,10 @@ export const listOfWorkerTarget = async (req, res, next) => {
   }
 }
 
-export const deleteWorkerTarget = async (req, res, next) => {
+export const deleteProductionTarget = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const target = await WorkerTarget.findByIdAndDelete(id)
+    const target = await ProductionTarget.findByIdAndDelete(id)
     return target ? res.status(200).json({ message: "Data Deleted", status: true }) : res.status(400).json({ message: "Not Found", status: false })
   } catch (error) {
     console.error(error);
