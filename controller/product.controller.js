@@ -286,22 +286,23 @@ if (!existingProduct) {
 }
 
 if (existingProduct.productType === "Parent") {
-  const products = await Product.find({
-    database: existingProduct.database,
-    status: "Active",
-    category: existingProduct.category,
-    SubCategory: existingProduct.SubCategory,
-    productType: "Child", 
-  });
 
-  for (const item of products) {
-    item.Units = item.Units.map((childUnit, index) => ({
-      ...childUnit.toObject(),
-      unit: existingProduct.Units[index]?.unit || childUnit.unit,
-    }));
+  await Product.updateMany(
+    {
+      database: existingProduct.database,
+      status: "Active",
+      category: existingProduct.category,
+      SubCategory: existingProduct.SubCategory,
+      productType: "Child",
+    },
+    {
+      $set: {
+        Units: req.body.Units,
+        productDetails: req.body.productDetails,
+      },
+    }
+  );
 
-    await item.save();
-  }
 }
     const group = await CustomerGroup.find({
       database: existingProduct.database,
