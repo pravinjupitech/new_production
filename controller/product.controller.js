@@ -258,92 +258,280 @@ export const DeleteProduct = async (req, res, next) => {
   }
 };
 
-const productId = req.params.id;
-
-// Parse multipart JSON fields FIRST
-if (req.body.Units && typeof req.body.Units === "string") {
+export const UpdateProduct = async (req, res, next) => {
   try {
-    req.body.Units = JSON.parse(req.body.Units);
-  } catch (err) {
-    return res.status(400).json({
-      status: false,
-      message: "Invalid Units JSON",
-    });
-  }
-}
+    console.log("request.body", req.body);
 
-if (
-  req.body.productDetails &&
-  typeof req.body.productDetails === "string"
-) {
-  try {
-    req.body.productDetails = JSON.parse(req.body.productDetails);
-  } catch (err) {
-    return res.status(400).json({
-      status: false,
-      message: "Invalid productDetails JSON",
-    });
-  }
-}
+    let groupDiscount = 0;
 
-if (
-  req.body.productCosting &&
-  typeof req.body.productCosting === "string"
-) {
-  try {
-    req.body.productCosting = JSON.parse(req.body.productCosting);
-  } catch (err) {
-    req.body.productCosting = [];
-  }
-}
+    // Upload images
+    if (req.files && req.files.length > 0) {
+      let images = [];
 
-const existingProduct = await Product.findById(productId);
+      req.files.map((file) => {
+        images.push(file.filename);
+      });
 
-if (!existingProduct) {
-  return res.status(404).json({
-    status: false,
-    message: "Product not found",
-  });
-}
-
-// If parent, update all child products
-if (existingProduct.productType === "Parent") {
-  await Product.updateMany(
-    {
-      database: existingProduct.database,
-      category: existingProduct.category,
-      SubCategory: existingProduct.SubCategory,
-      productType: "Child",
-      status: "Active",
-    },
-    {
-      $set: {
-        Units: req.body.Units,
-        productDetails: req.body.productDetails,
-        primaryUnit: req.body.primaryUnit,
-        secondaryUnit: req.body.secondaryUnit,
-        secondarySize: Number(req.body.secondarySize || 0),
-        stockUnit: req.body.stockUnit,
-      },
+      req.body.Product_image = images;
     }
-  );
-}
 
-// Update parent
-const product = await Product.findByIdAndUpdate(
-  productId,
-  req.body,
-  {
-    new: true,
-    runValidators: true,
+
+    // Parse JSON fields coming from multipart/form-data
+    if (req.body.Units && typeof req.body.Units === "string") {
+      try {
+        req.body.Units = JSON.parse(req.body.Units);
+      } catch (err) {
+        req.body.Units = [];
+      }
+    }
+
+
+    if (
+      req.body.productDetails &&
+      typeof req.body.productDetails === "string"
+    ) {
+      try {
+        req.body.productDetails = JSON.parse(req.body.productDetails);
+      } catch (err) {
+        req.body.productDetails = [];
+      }
+    }
+
+
+    if (
+      req.body.productCosting &&
+      typeof req.body.productCosting === "string"
+    ) {
+      try {
+        req.body.productCosting = JSON.parse(req.body.productCosting);
+      } catch (err) {
+        req.body.productCosting = [];
+      }
+    }
+
+
+    const productId = req.params.id;
+
+
+    const existingProduct = await Product.findById(productId);
+
+
+    if (!existingProduct) {
+      return res.status(404).json({
+        error: "Product not found",
+        status: false,
+      });
+    }
+
+
+    // Update child products when parent product is updated
+    if (existingProduct.productType === "Parent") {
+
+      await Product.updateMany(
+        {
+          database: existingProduct.database,
+          status: "Active",
+          category: existingProduct.category,
+          SubCategory: existingProduct.SubCategory,
+          productType: "Child",
+        },
+        {
+          $set: {
+            Units: req.body.Units || existingProduct.Units,
+            productDetails:
+              req.body.productDetails || existingProduct.productDetails,
+          },
+        }
+      );
+
+    }
+
+
+
+    // Customer group discount
+    const group = await CustomerGroup.find({
+      database: existingProduct.database,
+      status: "Active",
+    });
+
+
+    if (group.length > 0) {
+
+      const maxDiscount = group.reduce((max, item) => {
+        return item.discount > max.discount ? item : max;
+      });
+
+      groupDiscount = Number(maxDiscount.discount || 0);
+
+    }
+
+
+
+    req.body.Purchase_Rate = Number(
+      req.body.Purchase_Rate ||
+      existingProduct.Purchase_Rate ||
+      0
+    );
+
+
+    req.body.GSTRate = Number(
+      req.body.GSTRate ||
+      existingProduct.GSTRate ||
+      0
+    );
+
+
+    req.body.ProfitPercentage = Number(
+      req.body.ProfitPercentage || 0
+    );
+
+
+    req.body.Opening_Stock = Number(
+      req.body.Opening_Stock ||
+      existingProduct.Opening_Stock ||
+      0
+    );
+
+
+
+    // Landed cost calculation
+    if (req.body.Purchase_Rate > existingProduct.landedCost) {
+
+      req.body.landedCost = req.body.Purchase_Rate;
+
+    } else {
+
+      req.body.landedCost =
+        existingProduct.landedCost ||
+        req.body.Purchase_Rate;
+
+    }
+
+
+
+    const purchaseRate = req.body.Purchase_Rate;
+    const gstRate = req.body.GSTRate;
+    const profitPercentage = req.body.ProfitPercentage;
+    const discount = groupDiscount;
+
+
+
+    // Sales rate calculation
+    if (profitPercentage === 0) {
+
+      req.body.ProfitPercentage = 3;
+
+      req.body.SalesRate = purchaseRate * 1.03;
+
+    } else {
+
+      req.body.SalesRate =
+        purchaseRate +
+        (purchaseRate * profitPercentage / 100);
+
+    }
+
+
+
+    // MRP calculation
+    req.body.Product_MRP =
+      req.body.SalesRate *
+      (1 + gstRate / 100) *
+      (1 + discount / 100);
+
+
+
+    req.body.SalesRate = Number(
+      (req.body.SalesRate || 0).toFixed(2)
+    );
+
+
+    req.body.Product_MRP = Number(
+      (req.body.Product_MRP || 0).toFixed(2)
+    );
+
+
+
+    if (isNaN(req.body.Product_MRP)) {
+
+      return res.status(400).json({
+        message: "Invalid Product_MRP",
+        status: false,
+      });
+
+    }
+
+
+
+    if (isNaN(req.body.SalesRate)) {
+
+      return res.status(400).json({
+        message: "Invalid SalesRate",
+        status: false,
+      });
+
+    }
+
+
+
+    // Stock update
+    if (
+      existingProduct.Opening_Stock !==
+      req.body.Opening_Stock
+    ) {
+
+      const qty =
+        req.body.Opening_Stock -
+        existingProduct.Opening_Stock;
+
+
+      req.body.qty =
+        existingProduct.qty + qty;
+
+
+      await addProductInWarehouse(
+        req.body,
+        req.body.warehouse,
+        existingProduct
+      );
+
+    }
+
+
+
+    console.log("updatedProduct", req.body);
+
+
+
+    const product = await Product.findByIdAndUpdate(
+      productId,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+
+    return res.status(200).json({
+      message: "Product Updated Successfully",
+      status: true,
+      product,
+    });
+
+
+  } catch (err) {
+
+    console.error(err);
+
+    return res.status(500).json({
+      error: "Internal Server Error",
+      status: false,
+    });
+
   }
-);
+};
 
-return res.status(200).json({
-  status: true,
-  message: "Product Updated Successfully",
-  product,
-});
 export const StockAlert1 = async (req, res) => {
   try {
     const warehouses = await Warehouse.find({ database: req.params.database });
