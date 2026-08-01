@@ -2,7 +2,7 @@ import { Product } from "../model/product.model.js";
 import { RowProduct } from "../model/rowProduct.model.js";
 import { StartProduction } from "../model/startProduction.model.js";
 import { Warehouse } from "../model/warehouse.model.js";
-import { WorkerTarget } from "../model/ProductionTarget.model.js";
+import { ProductionTarget } from "../model/ProductionTarget.model.js";
 
 export const createProduction = async (req, res, next) => {
   try {
@@ -1092,7 +1092,7 @@ export const workerReport = async (req, res) => {
   }
 };
 
-export const ProductionTarget = async (req, res, next) => {
+export const productionTarget = async (req, res, next) => {
   try {
     const target = await ProductionTarget.create(req.body);
     return target ? res.status(200).json({ message: "Data Saved", status: true }) : res.status(400).json({ message: "Something Went Wrong", status: false })
