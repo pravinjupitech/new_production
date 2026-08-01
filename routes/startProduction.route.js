@@ -4,15 +4,15 @@ import {
   createProduction,
   deleteNestedProduct,
   deleteProduct,
-  deleteWorkerTarget,
-  listOfWorkerTarget,
+  deleteProductionTarget,
+  listOfProductionTarget,
   productTarget,
+  productionTarget,
   updateProduct,
   viewByIdProduct,
   viewProduct,
   wastageProductReport,
   workerReport,
-  workerTarget,
 } from "../controller/startProduction.controller.js";
 const router = express.Router();
 
@@ -26,7 +26,7 @@ router.put("/nested-update-production/:id/:innerId", NestedUpdateProduct);
 router.get("/current-target-product/:id", productTarget);
 router.get("/wastage-report/:database/:financeYear",wastageProductReport)
 router.get("/worker-report/:financeYear/:workerId",workerReport)
-router.post("/save-worker-target",workerTarget)
-router.get("/view-workerTarget/:database/:financeYear",listOfWorkerTarget)
-router.delete("/delete-workerTaget/:id",deleteWorkerTarget)
+router.post("/save-worker-target",productionTarget)
+router.get("/view-workerTarget/:database/:financeYear",listOfProductionTarget)
+router.delete("/delete-workerTaget/:id",deleteProductionTarget)
 export default router;

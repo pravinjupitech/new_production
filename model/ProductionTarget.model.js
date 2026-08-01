@@ -44,7 +44,7 @@ const ProductSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const WorkerSchema = new mongoose.Schema(
+const productionTargetSchema = new mongoose.Schema(
   {
     database: {
       type: String,
@@ -59,7 +59,6 @@ const WorkerSchema = new mongoose.Schema(
     },
     month: {
       type: String,
-      required: true,
     },
     products: {
       type: [ProductSchema],
@@ -73,7 +72,7 @@ const WorkerSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const WorkerTarget = mongoose.model(
-  "workerTarget",
-  WorkerSchema
+export const ProductionTarget = mongoose.model(
+  "productTarget",
+  productionTargetSchema
 );

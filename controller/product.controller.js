@@ -291,7 +291,7 @@ if (existingProduct.productType === "Parent") {
     status: "Active",
     category: existingProduct.category,
     SubCategory: existingProduct.SubCategory,
-    productType: "Child", // optional if only child products
+    productType: "Child", 
   });
 
   for (const item of products) {
