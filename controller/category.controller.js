@@ -59,11 +59,11 @@ export const saveCategory = async (req, res) => {
 
     return category
       ? res
-          .status(200)
-          .json({ message: "Category saved successfully", status: true })
+        .status(200)
+        .json({ message: "Category saved successfully", status: true })
       : res
-          .status(400)
-          .json({ message: "Something went wrong", status: false });
+        .status(400)
+        .json({ message: "Something went wrong", status: false });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: error.message, status: false });
@@ -172,12 +172,16 @@ export const saveSubCategory = async (req, res) => {
       req.body.image = req.file.filename;
     }
     const category = await Category.findOne({ _id: req.body.category });
+    if (req.body.units.length > 0) {
+      req.body.units = JSON.parse(req.body.units)
+    }
     if (category) {
       const newSubCategory = {
         name: req.body.name,
         image: req.body.image,
         description: req.body.description,
         unitType: req.body.unitType,
+        units:req.body.units,
         status: req.body.status,
       };
       category.subcategories.push(newSubCategory);

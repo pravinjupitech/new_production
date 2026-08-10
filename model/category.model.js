@@ -44,6 +44,7 @@ const categorySchema = new mongoose.Schema(
         description: {
           type: String,
         },
+        units:[],
         unitType: {
           type: String,
         },

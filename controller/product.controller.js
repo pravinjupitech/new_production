@@ -260,11 +260,8 @@ export const DeleteProduct = async (req, res, next) => {
 
 export const UpdateProduct = async (req, res, next) => {
   try {
-    console.log("request.body", req.body);
-
     let groupDiscount = 0;
 
-    // Upload images
     if (req.files && req.files.length > 0) {
       let images = [];
 
@@ -275,8 +272,6 @@ export const UpdateProduct = async (req, res, next) => {
       req.body.Product_image = images;
     }
 
-
-    // Parse JSON fields coming from multipart/form-data
     if (req.body.Units && typeof req.body.Units === "string") {
       try {
         req.body.Units = JSON.parse(req.body.Units);
@@ -309,22 +304,18 @@ export const UpdateProduct = async (req, res, next) => {
       }
     }
 
-
     const productId = req.params.id;
-
 
     const existingProduct = await Product.findById(productId);
 
 
-    if (!existingProduct) {
+   if (!existingProduct) {
       return res.status(404).json({
         error: "Product not found",
         status: false,
       });
     }
 
-
-    // Update child products when parent product is updated
     if (existingProduct.productType === "Parent") {
 
       await Product.updateMany(
@@ -346,9 +337,6 @@ export const UpdateProduct = async (req, res, next) => {
 
     }
 
-
-
-    // Customer group discount
     const group = await CustomerGroup.find({
       database: existingProduct.database,
       status: "Active",
@@ -392,9 +380,6 @@ export const UpdateProduct = async (req, res, next) => {
       0
     );
 
-
-
-    // Landed cost calculation
     if (req.body.Purchase_Rate > existingProduct.landedCost) {
 
       req.body.landedCost = req.body.Purchase_Rate;
@@ -414,9 +399,6 @@ export const UpdateProduct = async (req, res, next) => {
     const profitPercentage = req.body.ProfitPercentage;
     const discount = groupDiscount;
 
-
-
-    // Sales rate calculation
     if (profitPercentage === 0) {
 
       req.body.ProfitPercentage = 3;
@@ -431,15 +413,10 @@ export const UpdateProduct = async (req, res, next) => {
 
     }
 
-
-
-    // MRP calculation
     req.body.Product_MRP =
       req.body.SalesRate *
       (1 + gstRate / 100) *
       (1 + discount / 100);
-
-
 
     req.body.SalesRate = Number(
       (req.body.SalesRate || 0).toFixed(2)
@@ -461,8 +438,6 @@ export const UpdateProduct = async (req, res, next) => {
 
     }
 
-
-
     if (isNaN(req.body.SalesRate)) {
 
       return res.status(400).json({
@@ -472,9 +447,6 @@ export const UpdateProduct = async (req, res, next) => {
 
     }
 
-
-
-    // Stock update
     if (
       existingProduct.Opening_Stock !==
       req.body.Opening_Stock
@@ -496,12 +468,6 @@ export const UpdateProduct = async (req, res, next) => {
       );
 
     }
-
-
-
-    console.log("updatedProduct", req.body);
-
-
 
     const product = await Product.findByIdAndUpdate(
       productId,
