@@ -281,16 +281,16 @@ export const UpdateProduct = async (req, res, next) => {
     }
 
 
-    if (
-      req.body.productDetails &&
-      typeof req.body.productDetails === "string"
-    ) {
-      try {
-        req.body.productDetails = JSON.parse(req.body.productDetails);
-      } catch (err) {
-        req.body.productDetails = [];
-      }
-    }
+    // if (
+    //   req.body.productDetails &&
+    //   typeof req.body.productDetails === "string"
+    // ) {
+    //   try {
+    //     req.body.productDetails = JSON.parse(req.body.productDetails);
+    //   } catch (err) {
+    //     req.body.productDetails = [];
+    //   }
+    // }
 
 
     if (
@@ -329,8 +329,8 @@ export const UpdateProduct = async (req, res, next) => {
         {
           $set: {
             Units: req.body.Units || existingProduct.Units,
-            productDetails:
-              req.body.productDetails || existingProduct.productDetails,
+            // productDetails:
+            //   req.body.productDetails || existingProduct.productDetails,
           },
         }
       );
