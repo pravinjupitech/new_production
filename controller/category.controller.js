@@ -208,7 +208,10 @@ export const updateSubCategory = async (req, res) => {
       req.body.image = req.file.filename;
     }
     const { categoryId, subcategoryId } = req.params;
-    const { name, image, description, unitType } = req.body;
+    const { name, image, description, unitType,units } = req.body;
+    if(units.length>0){
+      req.body.units=JSON.parse(units)
+    }
     const category = await Category.findById(categoryId);
     if (!category) {
       return res
@@ -225,6 +228,7 @@ export const updateSubCategory = async (req, res) => {
     subcategory.image = image || subcategory.image;
     subcategory.description = description || subcategory.description;
     subcategory.unitType = unitType || subcategory.unitType;
+    subcategory.units=req.body.units||subcategory.units;
     const updatedCategory = await category.save();
     return res.status(200).json({
       message: "Subcategory updated successfully",
