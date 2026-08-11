@@ -130,20 +130,7 @@ const ProductSchema = new mongoose.Schema(
       },
     ],
 
-    productDetails: [
-      {
-        productId: String,
-        pieceWeight: Number,
-        pieceSqInch: Number,
-        bundleQty: Number,
-        bundleWeight: Number,
-        bundleSqInch: Number,
-        bundleinBag: Number,
-        bagWeight: Number,
-        bagQty: Number,
-        wastageSqInch: Number,
-      },
-    ],
+    productDetails: [],
 
     producttype: {
       type: String
