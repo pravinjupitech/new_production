@@ -15,43 +15,13 @@ const ProductSchema = new mongoose.Schema(
       required: true,
     },
     productDetails: {
-      pieceWeight: {
-        type: Number,
-        default: 0,
+      unit: {
+        type: String,
       },
-      pieceSqInch: {
+      value: {
         type: Number,
-        default: 0,
       },
-      bundleQty: {
-        type: Number,
-        default: 0,
-      },
-      bundleWeight: {
-        type: Number,
-        default: 0,
-      },
-      bundleSqInch: {
-        type: Number,
-        default: 0,
-      },
-      bundleinBag: {
-        type: Number,
-        default: 0,
-      },
-      bagWeight: {
-        type: Number,
-        default: 0,
-      },
-      bagQty: {
-        type: Number,
-        default: 0,
-      },
-      wastageSqInch: {
-        type: Number,
-        default: 0,
-      },
-    },
+     },
   },
   { _id: false }
 );
