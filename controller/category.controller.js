@@ -209,8 +209,15 @@ export const updateSubCategory = async (req, res) => {
     }
     const { categoryId, subcategoryId } = req.params;
     const { name, image, description, unitType,units } = req.body;
-    if(units.length>0){
-      req.body.units=JSON.parse(units)
+    if (units) {
+      try {
+        req.body.units = typeof units === "string" ? JSON.parse(units) : units;
+      } catch (error) {
+        return res.status(400).json({
+          message: "Invalid units format",
+          status: false,
+        });
+      }
     }
     const category = await Category.findById(categoryId);
     if (!category) {
