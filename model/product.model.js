@@ -129,7 +129,11 @@ const ProductSchema = new mongoose.Schema(
         },
       },
     ],
-
+    productQtyDetails: [{
+      productId: { type: String },
+      qty: { type: Number }
+    }]
+    ,
     productDetails: [],
 
     producttype: {
