@@ -123,6 +123,9 @@ if(req.body.productDetails&&req.body.productDetails.length>0){
           req.body.productDetails = JSON.parse(req.body.productDetails);
 
 }
+if(req.body.productQtyDetails&&req.body.productQtyDetails.length>0){
+    req.body.productQtyDetails = JSON.parse(req.body.productQtyDetails);
+}
     if (req.body.Units) {
 
       try {
