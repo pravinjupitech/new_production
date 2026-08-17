@@ -307,7 +307,9 @@ export const UpdateProduct = async (req, res, next) => {
         req.body.productCosting = [];
       }
     }
-
+if(req.body.productQtyDetails&&req.body.productQtyDetails.length>0){
+    req.body.productQtyDetails = JSON.parse(req.body.productQtyDetails);
+}
     const productId = req.params.id;
 
     const existingProduct = await Product.findById(productId);
