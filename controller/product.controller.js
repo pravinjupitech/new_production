@@ -307,8 +307,18 @@ export const UpdateProduct = async (req, res, next) => {
         req.body.productCosting = [];
       }
     }
-if(req.body.productQtyDetails&&req.body.productQtyDetails.length>0){
+if (
+  req.body.productQtyDetails !== undefined &&
+  typeof req.body.productQtyDetails === "string"
+) {
+  try {
     req.body.productQtyDetails = JSON.parse(req.body.productQtyDetails);
+  } catch (err) {
+    return res.status(400).json({
+      message: "Invalid productQtyDetails format",
+      status: false,
+    });
+  }
 }
     const productId = req.params.id;
 
