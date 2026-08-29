@@ -205,12 +205,12 @@ export const ViewProduct = async (req, res, next) => {
       .status(500)
       .json({ error: "Internal Server Error", status: false });
   }
-};
+}; 
 export const ViewProductForPurchase = async (req, res, next) => {
   try {
     const database = req.params.database;
     const product = await Product.find({ database: database, status: "Active" })
-      .sort({ sortorder: -1 })
+      .sort({ sortorder: -1 }).populate({path:"productDetails.productId",model:"product"})
       .populate({ path: "warehouse", model: "warehouse" });
     return res.status(200).json({ Product: product, status: true });
   } catch (err) {
