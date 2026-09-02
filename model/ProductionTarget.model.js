@@ -4,19 +4,15 @@ const InputProductDetailSchema = new mongoose.Schema(
   {
     unit: {
       type: String,
-      required: true,
     },
     qty: {
       type: Number,
-      required: true,
     },
     source: {
       type: String,
-      required: true,
     },
     operator: {
       type: String,
-      required: true,
     },
   },
   { _id: false }
@@ -26,23 +22,18 @@ const OutputProductDetailSchema = new mongoose.Schema(
   {
     unit: {
       type: String,
-      required: true,
     },
     inputQty: {
       type: Number,
-      required: true,
     },
     targetQty: {
       type: Number,
-      required: true,
     },
     operator: {
       type: String,
-      required: true,
     },
     calculatedQty: {
       type: Number,
-      required: true,
     },
   },
   { _id: false }
@@ -52,17 +43,15 @@ const ProductSchema = new mongoose.Schema(
   {
     productId: {
       type: String,
-      required: true,
+      
     },
 
     productName: {
       type: String,
-      required: true,
     },
 
     targetQty: {
       type: Number,
-      required: true,
     },
 
     inputProductDetails: {
@@ -81,13 +70,11 @@ const ProductSchema = new mongoose.Schema(
 const productionTargetSchema = new mongoose.Schema(
   {
     created_by: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type:String
     },
 
     database: {
       type: String,
-      required: true,
     },
 
     workerId: {
@@ -96,7 +83,6 @@ const productionTargetSchema = new mongoose.Schema(
 
     financialYear: {
       type: String,
-      required: true,
     },
 
     month: {
