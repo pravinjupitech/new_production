@@ -1094,6 +1094,8 @@ export const workerReport = async (req, res) => {
 
 export const productionTarget = async (req, res, next) => {
   try {
+    console.log("requeset body",req.body);
+    
     const target = await ProductionTarget.create(req.body);
     return target ? res.status(200).json({ message: "Data Saved", status: true }) : res.status(400).json({ message: "Something Went Wrong", status: false })
   } catch (error) {
