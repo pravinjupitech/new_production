@@ -782,6 +782,7 @@ export const UserList = async (req, res, next) => {
       .json({ error: "Internal Server Error", status: false });
   }
 };
+
 export const assignUser = async (req, res, next) => {
   try {
     const { childs } = req.body;
