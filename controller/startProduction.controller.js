@@ -1110,7 +1110,7 @@ export const productionTarget = async (req, res, next) => {
 export const listOfProductionTarget = async (req, res, next) => {
   try {
     const { database, financeYear } = req.params;
-    const targets = await ProductionTarget.find({ database, finanaceYear })
+    const targets = await ProductionTarget.find({ database, financeYear })
     return targets.length > 0 ? res.status(200).json({ message: "Data Found", targets, status: true }) : res.status(400).json({ message: "Bad Request", status: false })
   } catch (error) {
     console.error(error);
