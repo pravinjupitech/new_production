@@ -764,10 +764,13 @@ export const UserList = async (req, res, next) => {
     const user = await User.find({ database: database })
       .populate({ path: "created_by", model: "user" })
       .populate({ path: "rolename", model: "role" });
+      console.log("user",user)
     let customer = await Customer.find({ database: database })
       .sort({ sortorder: -1 })
       .populate({ path: "created_by", model: "user" })
       .populate({ path: "rolename", model: "role" });
+            console.log("customer",customer)
+
     const data = user.concat(customer);
     return data.length > 0
       ? res.status(200).json({ User: data, status: true })
