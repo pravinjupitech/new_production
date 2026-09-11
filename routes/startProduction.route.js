@@ -12,6 +12,7 @@ import {
   updateProductionTarget,
   viewByIdProduct,
   viewProduct,
+  viewProductionTarget,
   wastageProductReport,
   workerReport,
 } from "../controller/startProduction.controller.js";
@@ -31,5 +32,5 @@ router.post("/save-worker-target",productionTarget)
 router.get("/view-workerTarget/:database/:financeYear",listOfProductionTarget)
 router.delete("/delete-workerTaget/:id",deleteProductionTarget)
 router.put("/update-workerTaget/:id",updateProductionTarget)
-
+router.get("/view-by-target-id/:id",viewProductionTarget)
 export default router;
