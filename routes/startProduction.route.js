@@ -9,6 +9,7 @@ import {
   productTarget,
   productionTarget,
   updateProduct,
+  updateProductionTarget,
   viewByIdProduct,
   viewProduct,
   wastageProductReport,
@@ -29,4 +30,6 @@ router.get("/worker-report/:financeYear/:workerId",workerReport)
 router.post("/save-worker-target",productionTarget)
 router.get("/view-workerTarget/:database/:financeYear",listOfProductionTarget)
 router.delete("/delete-workerTaget/:id",deleteProductionTarget)
+router.update("/update-workerTaget/:id",updateProductionTarget)
+
 export default router;

@@ -1094,8 +1094,7 @@ export const workerReport = async (req, res) => {
 
 export const productionTarget = async (req, res, next) => {
   try {
-    console.log("requeset body",req.body);
-    
+
     const target = await ProductionTarget.create(req.body);
     return target ? res.status(200).json({ message: "Data Saved", status: true }) : res.status(400).json({ message: "Something Went Wrong", status: false })
   } catch (error) {
@@ -1110,7 +1109,7 @@ export const productionTarget = async (req, res, next) => {
 export const listOfProductionTarget = async (req, res, next) => {
   try {
     const { database, financialYear } = req.params;
-    const targets = await ProductionTarget.find({ database,financeYear:financialYear })
+    const targets = await ProductionTarget.find({ database, financeYear: financialYear })
     return targets.length > 0 ? res.status(200).json({ message: "Data Found", targets, status: true }) : res.status(400).json({ message: "Bad Request", status: false })
   } catch (error) {
     console.error(error);
@@ -1126,6 +1125,20 @@ export const deleteProductionTarget = async (req, res, next) => {
     const { id } = req.params;
     const target = await ProductionTarget.findByIdAndDelete(id)
     return target ? res.status(200).json({ message: "Data Deleted", status: true }) : res.status(400).json({ message: "Not Found", status: false })
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      status: false,
+      error: "Internal Server Error",
+    });
+  }
+}
+
+export const updateProductionTarget = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const target = await ProductionTarget.findByIdAndUpdate(id)
+    return target ? res.status(200).json({ message: "Data updated", status: true }) : res.status(400).json({ message: "Not Found", status: false })
   } catch (error) {
     console.error(error);
     return res.status(500).json({
