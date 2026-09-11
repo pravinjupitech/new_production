@@ -1150,13 +1150,35 @@ export const viewProductionTarget = async (req, res, next) => {
 export const updateProductionTarget = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const target = await ProductionTarget.findByIdAndUpdate(id)
-    return target ? res.status(200).json({ message: "Data updated", status: true }) : res.status(400).json({ message: "Not Found", status: false })
+
+    const target = await ProductionTarget.findByIdAndUpdate(
+      id,
+      { $set: req.body },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!target) {
+      return res.status(404).json({
+        message: "Production target not found",
+        status: false,
+      });
+    }
+
+    return res.status(200).json({
+      message: "Data updated successfully",
+      status: true,
+      data: target,
+    });
   } catch (error) {
-    console.error(error);
+    console.error("Update Production Target Error:", error);
+
     return res.status(500).json({
       status: false,
-      error: "Internal Server Error",
+      message: "Internal Server Error",
+      error: error.message,
     });
   }
-}
+};
