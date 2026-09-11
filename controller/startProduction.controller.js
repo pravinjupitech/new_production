@@ -1133,6 +1133,19 @@ export const deleteProductionTarget = async (req, res, next) => {
     });
   }
 }
+export const viewProductionTarget = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const target = await ProductionTarget.findById(id)
+    return target ? res.status(200).json({ message: "Data found",target, status: true }) : res.status(400).json({ message: "Not Found", status: false })
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      status: false,
+      error: "Internal Server Error",
+    });
+  }
+}
 
 export const updateProductionTarget = async (req, res, next) => {
   try {
