@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  AchievementTarget,
   NestedUpdateProduct,
   createProduction,
   deleteNestedProduct,
@@ -33,4 +34,5 @@ router.get("/view-workerTarget/:database/:financeYear",listOfProductionTarget)
 router.delete("/delete-workerTaget/:id",deleteProductionTarget)
 router.put("/update-workerTaget/:id",updateProductionTarget)
 router.get("/view-by-target-id/:id",viewProductionTarget)
+router.post("/save-achievemeny",AchievementTarget)
 export default router;

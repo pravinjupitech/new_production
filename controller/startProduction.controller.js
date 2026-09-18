@@ -1152,11 +1152,9 @@ export const updateProductionTarget = async (req, res, next) => {
     const { id } = req.params;
 
     const target = await ProductionTarget.findByIdAndUpdate(
-      id,
-      { $set: req.body },
+      id,req.body ,
       {
         new: true,
-        runValidators: true,
       }
     );
 
@@ -1182,3 +1180,17 @@ export const updateProductionTarget = async (req, res, next) => {
     });
   }
 };
+
+export const AchievementTarget=async(req,res,next)=>{
+  try {
+    
+    const target = await AchievementTarget.create(req.body);
+    return target ? res.status(200).json({ message: "Data Saved", status: true }) : res.status(400).json({ message: "Something Went Wrong", status: false })
+  } catch (error) {
+     console.error(error);
+    return res.status(500).json({
+      status: false,
+      error: "Internal Server Error",
+    });
+  }
+}
