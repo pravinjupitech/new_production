@@ -3,6 +3,7 @@ import { RowProduct } from "../model/rowProduct.model.js";
 import { StartProduction } from "../model/startProduction.model.js";
 import { Warehouse } from "../model/warehouse.model.js";
 import { ProductionTarget } from "../model/ProductionTarget.model.js";
+import { AchievementTarget } from "../model/achievementTarget.model.js";
 
 export const createProduction = async (req, res, next) => {
   try {
