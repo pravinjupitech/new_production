@@ -1113,13 +1113,12 @@ export const listOfProductionTarget = async (req, res) => {
 
     const [targets, achievements] = await Promise.all([
       ProductionTarget.find({
-        database,
-        financeYear: financialYear,
+        database, financeYear:financialYear,
       }).lean(),
 
       AchievementTarget.find({
         database,
-        financialYear: financialYear,
+       financeYear:financialYear
       }).lean(),
     ]);
 
