@@ -1107,19 +1107,45 @@ export const productionTarget = async (req, res, next) => {
   }
 }
 
-export const listOfProductionTarget = async (req, res, next) => {
+export const listOfProductionTarget = async (req, res) => {
   try {
     const { database, financialYear } = req.params;
-    const targets = await ProductionTarget.find({ database, financeYear: financialYear })
-    return targets.length > 0 ? res.status(200).json({ message: "Data Found", targets, status: true }) : res.status(400).json({ message: "Bad Request", status: false })
+
+    const [targets, achievements] = await Promise.all([
+      ProductionTarget.find({
+        database,
+        financeYear: financialYear,
+      }).lean(),
+
+      AchievementTarget.find({
+        database,
+        financialYear: financialYear,
+      }).lean(),
+    ]);
+
+    if (!targets.length) {
+      return res.status(404).json({
+        status: false,
+        message: "No production targets found",
+      });
+    }
+
+    return res.status(200).json({
+      status: true,
+      message: "Data Found",
+      targets,
+      achievements,
+    });
   } catch (error) {
-    console.error(error);
+    console.error("listOfProductionTarget:", error);
+
     return res.status(500).json({
       status: false,
-      error: "Internal Server Error",
+      message: "Internal Server Error",
     });
   }
-}
+};
+
 
 export const deleteProductionTarget = async (req, res, next) => {
   try {
