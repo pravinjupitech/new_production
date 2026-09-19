@@ -1181,7 +1181,7 @@ export const updateProductionTarget = async (req, res, next) => {
   }
 };
 
-export const AchievementTarget=async(req,res,next)=>{
+export const AchievementTargets=async(req,res,next)=>{
   try {
     
     const target = await AchievementTarget.create(req.body);
