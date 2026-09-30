@@ -358,61 +358,138 @@ export const UpdateProduct = async (req, res, next) => {
       req.body.Product_image = images;
     }
 
-    if (req.body.Units && typeof req.body.Units === "string") {
-      try {
-        req.body.Units = JSON.parse(req.body.Units);
-      } catch (err) {
-        req.body.Units = [];
+
+    if (req.body.Units) {
+
+      if (typeof req.body.Units === "string") {
+
+        try {
+          req.body.Units = JSON.parse(req.body.Units);
+        } catch (err) {
+          req.body.Units = [];
+        }
+
       }
+
+    }
+
+
+
+    if (req.body.productDetails) {
+
+      if (typeof req.body.productDetails === "string") {
+
+        try {
+          req.body.productDetails =
+            JSON.parse(req.body.productDetails);
+        } catch (err) {
+          req.body.productDetails = [];
+        }
+
+      }
+
+    }
+
+
+
+    if (req.body.productCosting) {
+
+      if (typeof req.body.productCosting === "string") {
+
+        try {
+          req.body.productCosting =
+            JSON.parse(req.body.productCosting);
+        } catch (err) {
+          req.body.productCosting = [];
+        }
+
+      }
+
     }
 
 
     if (
-      req.body.productDetails &&
-      typeof req.body.productDetails === "string"
+      req.body.productQtyDetails !== undefined &&
+      typeof req.body.productQtyDetails === "string"
     ) {
+
       try {
-        req.body.productDetails = JSON.parse(req.body.productDetails);
+
+        req.body.productQtyDetails =
+          JSON.parse(req.body.productQtyDetails);
+
       } catch (err) {
-        req.body.productDetails = [];
+
+        return res.status(400).json({
+          message: "Invalid productQtyDetails format",
+          status: false,
+        });
+
       }
+
     }
 
 
-    if (
-      req.body.productCosting &&
-      typeof req.body.productCosting === "string"
-    ) {
-      try {
-        req.body.productCosting = JSON.parse(req.body.productCosting);
-      } catch (err) {
-        req.body.productCosting = [];
+
+    if (req.body.step_Name) {
+
+      if (typeof req.body.step_Name === "string") {
+
+        try {
+
+          req.body.step_Name =
+            JSON.parse(req.body.step_Name);
+
+        } catch (err) {
+          req.body.step_Name = [
+            req.body.step_Name
+          ];
+
+        }
+
       }
+
     }
-if (
-  req.body.productQtyDetails !== undefined &&
-  typeof req.body.productQtyDetails === "string"
-) {
-  try {
-    req.body.productQtyDetails = JSON.parse(req.body.productQtyDetails);
-  } catch (err) {
-    return res.status(400).json({
-      message: "Invalid productQtyDetails format",
-      status: false,
-    });
-  }
-}
+
+
+
+    if (req.body.rawMaterialDetails) {
+
+      if (typeof req.body.rawMaterialDetails === "string") {
+
+        try {
+
+          req.body.rawMaterialDetails =
+            JSON.parse(req.body.rawMaterialDetails);
+
+        } catch (err) {
+
+          req.body.rawMaterialDetails = [];
+
+        }
+
+      }
+
+    }
+
+
     const productId = req.params.id;
 
-    const existingProduct = await Product.findById(productId);
+
+    const existingProduct =
+      await Product.findById(productId);
 
 
-   if (!existingProduct) {
+    if (!existingProduct) {
+
       return res.status(404).json({
         error: "Product not found",
         status: false,
       });
+
     }
+
+
 
     if (existingProduct.productType === "Parent") {
 
@@ -426,14 +503,31 @@ if (
         },
         {
           $set: {
-            Units: req.body.Units || existingProduct.Units,
+
+            Units:
+              req.body.Units ||
+              existingProduct.Units,
+
             productDetails:
-              req.body.productDetails || existingProduct.productDetails,
+              req.body.productDetails ||
+              existingProduct.productDetails,
+
+            // NEW
+            step_Name:
+              req.body.step_Name ||
+              existingProduct.step_Name,
+
+            rawMaterialDetails:
+              req.body.rawMaterialDetails ||
+              existingProduct.rawMaterialDetails,
+
           },
         }
       );
 
     }
+
+
 
     const group = await CustomerGroup.find({
       database: existingProduct.database,
@@ -444,21 +538,24 @@ if (
     if (group.length > 0) {
 
       const maxDiscount = group.reduce((max, item) => {
-        return item.discount > max.discount ? item : max;
+
+        return item.discount > max.discount
+          ? item
+          : max;
+
       });
 
-      groupDiscount = Number(maxDiscount.discount || 0);
+
+      groupDiscount =
+        Number(maxDiscount.discount || 0);
 
     }
-
-
 
     req.body.Purchase_Rate = Number(
       req.body.Purchase_Rate ||
       existingProduct.Purchase_Rate ||
       0
     );
-
 
     req.body.GSTRate = Number(
       req.body.GSTRate ||
@@ -471,16 +568,19 @@ if (
       req.body.ProfitPercentage || 0
     );
 
-
     req.body.Opening_Stock = Number(
       req.body.Opening_Stock ||
       existingProduct.Opening_Stock ||
       0
     );
 
-    if (req.body.Purchase_Rate > existingProduct.landedCost) {
+    if (
+      req.body.Purchase_Rate >
+      existingProduct.landedCost
+    ) {
 
-      req.body.landedCost = req.body.Purchase_Rate;
+      req.body.landedCost =
+        req.body.Purchase_Rate;
 
     } else {
 
@@ -491,17 +591,25 @@ if (
     }
 
 
+    const purchaseRate =
+      req.body.Purchase_Rate;
 
-    const purchaseRate = req.body.Purchase_Rate;
-    const gstRate = req.body.GSTRate;
-    const profitPercentage = req.body.ProfitPercentage;
-    const discount = groupDiscount;
+    const gstRate =
+      req.body.GSTRate;
+
+    const profitPercentage =
+      req.body.ProfitPercentage;
+
+    const discount =
+      groupDiscount;
+
 
     if (profitPercentage === 0) {
 
       req.body.ProfitPercentage = 3;
 
-      req.body.SalesRate = purchaseRate * 1.03;
+      req.body.SalesRate =
+        purchaseRate * 1.03;
 
     } else {
 
@@ -511,10 +619,12 @@ if (
 
     }
 
+
     req.body.Product_MRP =
       req.body.SalesRate *
       (1 + gstRate / 100) *
       (1 + discount / 100);
+
 
     req.body.SalesRate = Number(
       (req.body.SalesRate || 0).toFixed(2)
@@ -526,7 +636,6 @@ if (
     );
 
 
-
     if (isNaN(req.body.Product_MRP)) {
 
       return res.status(400).json({
@@ -536,6 +645,7 @@ if (
 
     }
 
+
     if (isNaN(req.body.SalesRate)) {
 
       return res.status(400).json({
@@ -544,6 +654,7 @@ if (
       });
 
     }
+
 
     if (
       existingProduct.Opening_Stock !==
@@ -567,14 +678,16 @@ if (
 
     }
 
-    const product = await Product.findByIdAndUpdate(
-      productId,
-      req.body,
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+
+    const product =
+      await Product.findByIdAndUpdate(
+        productId,
+        req.body,
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
 
 
     return res.status(200).json({
@@ -595,6 +708,7 @@ if (
 
   }
 };
+
 
 export const StockAlert1 = async (req, res) => {
   try {
