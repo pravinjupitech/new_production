@@ -144,6 +144,7 @@ const ProductSchema = new mongoose.Schema(
     },
     rawMaterialDetails: [{
       productId: { type: String },
+      qty:{ type: String },
       step_Name: { type: Array }
     }],
     productCosting: [{
