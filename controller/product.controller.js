@@ -113,40 +113,117 @@ export const SaveProduct = async (req, res) => {
     req.body.Product_MRP = Number(
       (req.body.Product_MRP || 0).toFixed(2)
     );
- 
+
 
     if (req.body.Opening_Stock > 0) {
       req.body.qty = req.body.Opening_Stock;
     }
 
-if(req.body.productDetails&&req.body.productDetails.length>0){
-          req.body.productDetails = JSON.parse(req.body.productDetails);
+    if (req.body.productDetails) {
 
-}
-if(req.body.productQtyDetails&&req.body.productQtyDetails.length>0){
-    req.body.productQtyDetails = JSON.parse(req.body.productQtyDetails);
-}
-    if (req.body.Units) {
+      if (typeof req.body.productDetails === "string") {
 
-      try {
-        req.body.Units = JSON.parse(req.body.Units);
-      } catch (err) {
-        req.body.Units = [];
+        try {
+          req.body.productDetails = JSON.parse(
+            req.body.productDetails
+          );
+        } catch (err) {
+          req.body.productDetails = [];
+        }
+
       }
 
     }
+
+
+    if (req.body.productQtyDetails) {
+
+      if (typeof req.body.productQtyDetails === "string") {
+
+        try {
+          req.body.productQtyDetails = JSON.parse(
+            req.body.productQtyDetails
+          );
+        } catch (err) {
+          req.body.productQtyDetails = [];
+        }
+
+      }
+
+    }
+
+
+    if (req.body.Units) {
+
+      if (typeof req.body.Units === "string") {
+
+        try {
+          req.body.Units = JSON.parse(req.body.Units);
+        } catch (err) {
+          req.body.Units = [];
+        }
+
+      }
+
+    }
+
 
     if (req.body.productCosting) {
 
-      try {
-        req.body.productCosting = JSON.parse(req.body.productCosting);
-      } catch (err) {
-        req.body.productCosting = [];
+      if (typeof req.body.productCosting === "string") {
+
+        try {
+          req.body.productCosting = JSON.parse(
+            req.body.productCosting
+          );
+        } catch (err) {
+          req.body.productCosting = [];
+        }
+
       }
 
     }
 
-  
+
+
+    if (req.body.rawMaterialDetails) {
+
+      if (typeof req.body.rawMaterialDetails === "string") {
+
+        try {
+          req.body.rawMaterialDetails = JSON.parse(
+            req.body.rawMaterialDetails
+          );
+        } catch (err) {
+          req.body.rawMaterialDetails = [];
+        }
+
+      }
+
+    }
+
+
+    if (req.body.step_Name) {
+
+      if (typeof req.body.step_Name === "string") {
+
+        try {
+          req.body.step_Name = JSON.parse(
+            req.body.step_Name
+          );
+        } catch (err) {
+
+          req.body.step_Name = [
+            req.body.step_Name
+          ];
+
+        }
+
+      }
+
+    }
+
+
     if (isNaN(req.body.Product_MRP)) {
 
       return res.status(400).json({
@@ -165,7 +242,9 @@ if(req.body.productQtyDetails&&req.body.productQtyDetails.length>0){
 
     }
 
+
     const product = await Product.create(req.body);
+
 
     await addProductInWarehouse1(
       req.body,
@@ -173,11 +252,13 @@ if(req.body.productQtyDetails&&req.body.productQtyDetails.length>0){
       product
     );
 
+
     return res.status(200).json({
       message: "product save successfully",
       status: true,
       product,
     });
+
 
   } catch (err) {
 
@@ -190,6 +271,7 @@ if(req.body.productQtyDetails&&req.body.productQtyDetails.length>0){
 
   }
 };
+
 
 export const ViewProduct = async (req, res, next) => {
   try {

@@ -142,9 +142,9 @@ const ProductSchema = new mongoose.Schema(
     step_Name: {
       type: Array
     },
-    rawMaterialDetails:[{
-productId: { type: String },
-step_Name:{type:Array}
+    rawMaterialDetails: [{
+      productId: { type: String },
+      step_Name: { type: Array }
     }],
     productCosting: [{
       productId: { type: String },
