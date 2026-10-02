@@ -11,6 +11,9 @@ const ProductSchema = new mongoose.Schema(
     database: {
       type: String,
     },
+    type: {
+      type: String,
+    },
     partyId: {
       type: String,
     },
