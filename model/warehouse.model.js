@@ -14,6 +14,9 @@ const WarehouseSchema = new mongoose.Schema(
     warehouseName: {
       type: String,
     },
+    warehouseType: {
+      type: String,
+    },
     mobileNo: {
       type: Number,
     },
