@@ -222,6 +222,42 @@ export const SaveProduct = async (req, res) => {
       }
 
     }
+  if (req.body.productionMaterials) {
+
+      if (typeof req.body.productionMaterials === "string") {
+        try {
+          req.body.productionMaterials =
+            JSON.parse(req.body.productionMaterials);
+
+        } catch (err) {
+          req.body.productionMaterials = [
+            req.body.productionMaterials
+          ];
+
+        }
+
+      }
+
+    }
+    if (req.body.productSpecification) {
+
+      if (typeof req.body.productSpecification === "string") {
+
+        try {
+
+          req.body.productSpecification =
+            JSON.parse(req.body.productSpecification);
+
+        } catch (err) {
+          req.body.productSpecification = [
+            req.body.productSpecification
+          ];
+
+        }
+
+      }
+
+    }
 
 
     if (isNaN(req.body.Product_MRP)) {
@@ -450,8 +486,44 @@ export const UpdateProduct = async (req, res, next) => {
       }
 
     }
+    if (req.body.productionMaterials) {
 
+      if (typeof req.body.productionMaterials === "string") {
 
+        try {
+
+          req.body.productionMaterials =
+            JSON.parse(req.body.productionMaterials);
+
+        } catch (err) {
+          req.body.productionMaterials = [
+            req.body.productionMaterials
+          ];
+
+        }
+
+      }
+
+    }
+    if (req.body.productSpecification) {
+
+      if (typeof req.body.productSpecification === "string") {
+
+        try {
+
+          req.body.productSpecification =
+            JSON.parse(req.body.productSpecification);
+
+        } catch (err) {
+          req.body.productSpecification = [
+            req.body.productSpecification
+          ];
+
+        }
+
+      }
+
+    }
 
     if (req.body.rawMaterialDetails) {
 
