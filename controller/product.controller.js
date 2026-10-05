@@ -225,9 +225,7 @@ export const SaveProduct = async (req, res) => {
   if (req.body.productionMaterials) {
 
       if (typeof req.body.productionMaterials === "string") {
-
         try {
-
           req.body.productionMaterials =
             JSON.parse(req.body.productionMaterials);
 
@@ -526,8 +524,6 @@ export const UpdateProduct = async (req, res, next) => {
       }
 
     }
-
-
 
     if (req.body.rawMaterialDetails) {
 
