@@ -86,6 +86,7 @@ const productionTargetSchema = new mongoose.Schema(
     },
 
     month:{type:Array},
+    productionMaterials:{type:Array},
 
     reportType: {
       type: String,
