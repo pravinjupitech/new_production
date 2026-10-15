@@ -125,14 +125,11 @@ const ProductSchema = new mongoose.Schema(
     ProfitPercentage: {
       type: Number,
     },
-    Units: [
+    units: [
       {
-        unit: {
-          type: String,
-        },
-        qty: {
-          type: Number,
-        },
+        grossQty: { type: Number },
+        grossSqInch: { type: Number },
+        grossWeight: { type: Number },
       },
     ],
     productQtyDetails: [{
@@ -151,8 +148,9 @@ const ProductSchema = new mongoose.Schema(
     productSpecification: {
       type: Array
     },
-    productionMaterials: {
-      type: Array
+     productionMaterials: {
+      materials: { type: Array, default: [] },
+      grandTotal: { type: Number, default: 0 },
     },
     rawMaterialDetails: [{
       productId: { type: String },
