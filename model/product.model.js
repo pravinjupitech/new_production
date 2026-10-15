@@ -125,7 +125,7 @@ const ProductSchema = new mongoose.Schema(
     ProfitPercentage: {
       type: Number,
     },
-    units: [
+    Units: [
       {
         grossQty: { type: Number },
         grossSqInch: { type: Number },

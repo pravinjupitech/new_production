@@ -8,6 +8,7 @@ import { Stock } from "../model/stock.js";
 
 export const SaveProduct = async (req, res) => {
   try {
+console.log("dfafadsf",req.body);
 
     let groupDiscount = 0;
 
