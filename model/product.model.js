@@ -20,6 +20,9 @@ const ProductSchema = new mongoose.Schema(
     productSection: {
       type: String,
     },
+    productionItemType: {
+      type: String,
+    },
     primaryUnit: {
       type: String,
     },
@@ -148,13 +151,13 @@ const ProductSchema = new mongoose.Schema(
     productSpecification: {
       type: Array
     },
-     productionMaterials: {
+    productionMaterials: {
       materials: { type: Array, default: [] },
       grandTotal: { type: Number, default: 0 },
     },
     rawMaterialDetails: [{
       productId: { type: String },
-      qty:{ type: String },
+      qty: { type: String },
       step_Name: { type: Array }
     }],
     productCosting: [{
