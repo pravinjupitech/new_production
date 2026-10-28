@@ -148,6 +148,9 @@ const ProductSchema = new mongoose.Schema(
     step_Name: {
       type: Array
     },
+    current_Step:{
+      type:String
+    },
     productSpecification: {
       type: Array
     },
