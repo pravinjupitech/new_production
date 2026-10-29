@@ -151,6 +151,10 @@ const ProductSchema = new mongoose.Schema(
     current_Step:{
       type:String
     },
+    purchaseRatePerGrossSqInch:{
+      type:String
+    },
+
     productSpecification: {
       type: Array
     },
