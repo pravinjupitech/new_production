@@ -71,7 +71,7 @@ console.log("product",product);
   }
 
   for (const unit of productUnits) {
-          console.log("unit.unit",unit.unit,product.stockUnit,unit.qty);
+          console.log("unit.unit",unit);
 
     if (unit.unit === product.stockUnit) {
       
