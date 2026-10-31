@@ -77,7 +77,8 @@ const updateProductQty = async (
         product.qty -= unit.grossQty;
 
         await productionlapseWarehouse(
-          unit.qty,
+          // unit.qty,
+          unit.grossQty,
           product.warehouse,
           productId
         );
@@ -86,7 +87,8 @@ const updateProductQty = async (
         product.qty += unit.grossQty;
 
         await productionAddWarehouse(
-          unit.qty,
+          // unit.qty,
+          unit.grossQty,
           product.warehouse,
           productId
         );
