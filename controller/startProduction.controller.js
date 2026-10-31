@@ -61,7 +61,6 @@ const updateProductQty = async (
   res
 ) => {
   const product = await Product.findById(productId);
-console.log("product",product);
 
   if (!product) {
     return res.status(404).json({
@@ -71,12 +70,11 @@ console.log("product",product);
   }
 
   for (const unit of productUnits) {
-          console.log("unit.unit",unit);
-
     if (unit.unit === product.stockUnit) {
       
       if (actionType === "deduct") {
-        product.qty -= unit.qty;
+        // product.qty -= unit.qty;
+        product.qty -= unit.grossQty;
 
         await productionlapseWarehouse(
           unit.qty,
@@ -84,7 +82,8 @@ console.log("product",product);
           productId
         );
       } else if (actionType === "add") {
-        product.qty += unit.qty;
+        // product.qty += unit.qty;
+        product.qty += unit.grossQty;
 
         await productionAddWarehouse(
           unit.qty,
