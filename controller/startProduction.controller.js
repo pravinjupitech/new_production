@@ -7,6 +7,8 @@ import { AchievementTarget } from "../model/achievementTarget.model.js";
 
 export const createProduction = async (req, res, next) => {
   try {
+    console.log("request",req.body);
+    
     const { product_details } = req.body;
     for (const item of product_details) {
       if (item?.rProduct_name) {
