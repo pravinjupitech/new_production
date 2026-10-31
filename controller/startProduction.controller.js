@@ -7,7 +7,6 @@ import { AchievementTarget } from "../model/achievementTarget.model.js";
 
 export const createProduction = async (req, res, next) => {
   try {
-    console.log("request",req.body);
     
     const { product_details } = req.body;
     for (const item of product_details) {
@@ -283,20 +282,20 @@ const revertStockUnits = async (units, product, actionType) => {
     for (const unit of units) {
       console.log("product.stockUnit", product.stockUnit);
 
-      if (unit.unit === product.stockUnit) {
+      // if (unit.unit === product.stockUnit) {
         product.qty =
           actionType === "add"
-            ? product.qty + unit.qty
-            : product.qty - unit.qty;
+            ? product.qty + unit.grossQty
+            : product.qty - unit.grossQty;
         await product.save();
         await (actionType === "add"
-          ? productionAddWarehouse(unit.qty, product.warehouse, product._id)
+          ? productionAddWarehouse(unit.grossQty, product.warehouse, product._id)
           : productionlapseWarehouse(
-            unit.qty,
+            unit.grossQty,
             product.warehouse,
             product._id
           ));
-      }
+      // }
     }
   } else {
     console.error("Expected 'units' to be an array, but got:", units);
