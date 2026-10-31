@@ -68,7 +68,10 @@ const updateProductQty = async (
   }
 
   for (const unit of productUnits) {
+          console.log("unit.unit",unit.unit,product.stockUnit,unit.qty);
+
     if (unit.unit === product.stockUnit) {
+      
       if (actionType === "deduct") {
         product.qty -= unit.qty;
 
