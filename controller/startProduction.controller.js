@@ -61,6 +61,7 @@ const updateProductQty = async (
   res
 ) => {
   const product = await Product.findById(productId);
+console.log("product",product);
 
   if (!product) {
     return res.status(404).json({
