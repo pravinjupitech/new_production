@@ -17,7 +17,8 @@ import mongoose from "mongoose";
 import { WorkingHours } from "../model/workingHours.model.js";
 import { UserBranch } from "../model/userBranch.model.js";
 import { LoginVerificationMail } from "../service/sendmail.js";
-dotenv.config();  
+import { Product } from "../model/product.model.js";
+dotenv.config();
 
 
 export const SaveUser = async (req, res, next) => {
@@ -62,7 +63,7 @@ export const SaveUser = async (req, res, next) => {
       req.body.warehouse = await JSON.parse(req.body.warehouse);
       // await assingWarehouse(req.body.warehouse, user._id);
     }
-    if (req.body.role&&req.body.role.length > 0) {
+    if (req.body.role && req.body.role.length > 0) {
       req.body.role = JSON.parse(req.body.role);
     }
     const findRole = await Role.findById(req.body.rolename);
@@ -79,11 +80,11 @@ export const SaveUser = async (req, res, next) => {
     }
     return user
       ? res
-          .status(200)
-          .json({ message: "Data Save Successfull", User: user, status: true })
+        .status(200)
+        .json({ message: "Data Save Successfull", User: user, status: true })
       : res
-          .status(400)
-          .json({ message: "Something Went Wrong", status: false });
+        .status(400)
+        .json({ message: "Something Went Wrong", status: false });
   } catch (err) {
     console.log(err);
     return res
@@ -170,7 +171,7 @@ export const ViewUser = async (req, res, next) => {
       .status(500)
       .json({ error: "Internal Server Error", status: false });
   }
-}; 
+};
 
 export const DeleteUser = async (req, res, next) => {
   try {
@@ -408,10 +409,10 @@ export const forgetPassword = async (request, response, next) => {
     await transporterss.sendMail(mailOptions, (error, info) => {
       !error
         ? response
-            .status(201)
-            .json({ user: user, message: "send otp on email", status: true })
+          .status(201)
+          .json({ user: user, message: "send otp on email", status: true })
         : console.log(error) ||
-          response.json({ error: "something went wrong" });
+        response.json({ error: "something went wrong" });
     });
   } catch (error) {
     console.error(error);
@@ -764,12 +765,12 @@ export const UserList = async (req, res, next) => {
     const user = await User.find({ database: database })
       .populate({ path: "created_by", model: "user" })
       .populate({ path: "rolename", model: "role" });
-      console.log("user",user)
+    console.log("user", user)
     let customer = await Customer.find({ database: database })
       .sort({ sortorder: -1 })
       .populate({ path: "created_by", model: "user" })
       .populate({ path: "rolename", model: "role" });
-            console.log("customer",customer)
+    console.log("customer", customer)
 
     const data = user.concat(customer);
     return data.length > 0
@@ -1028,8 +1029,8 @@ export const SaveUserDetail = async (req, res, next) => {
     const user = await UserDetail.create(req.body);
     return user
       ? res
-          .status(200)
-          .json({ message: "Date Saved Successfull!", stutas: true })
+        .status(200)
+        .json({ message: "Date Saved Successfull!", stutas: true })
       : res.status(400).json({ message: "Bad Request", status: false });
   } catch (err) {
     console.log(err);
@@ -1295,4 +1296,62 @@ const generateUniqueSixDigitNumber = () => {
   }
   assignedNumbers.add(uniqueNumber);
   return uniqueNumber;
+};
+
+
+export const staticProduct = async (req, res, next) => {
+  try {
+    const superAdmins = await User.find({ status: "Active" })
+      .populate({ path: "rolename", model: "role" });
+
+    if (!superAdmins || superAdmins.length === 0) {
+      console.log("No active users found");
+      return res?.status(404).json({
+        message: "Not Found",
+        status: false
+      });
+    }
+
+    for (const item of superAdmins) {
+      const findProduct = await Product.findOne({
+        Product_Title: "Wastage",
+        status: "Active",
+        database: item.database
+      });
+
+      if (!findProduct) {
+        const obj = {
+          Product_Title: "Wastage",
+          created_by: item._id,
+          database: item.database,
+          type: "Production",
+          productSection: "wastage",
+          status: "Active"
+        };
+
+        await Product.create(obj);
+
+        console.log("Wastage product created for database:", item.database);
+      }
+    }
+
+    if (res) {
+      return res.status(200).json({
+        message: "Wastage products checked successfully",
+        status: true
+      });
+    }
+
+    console.log("Wastage products checked successfully");
+
+  } catch (error) {
+    console.error("staticProduct error:", error);
+
+    if (res) {
+      return res.status(500).json({
+        message: "Internal Server Error",
+        status: false
+      });
+    }
+  }
 };
