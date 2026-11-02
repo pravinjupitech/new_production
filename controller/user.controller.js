@@ -1305,7 +1305,6 @@ export const staticProduct = async (req, res, next) => {
       .populate({ path: "rolename", model: "role" });
 
     if (!superAdmins || superAdmins.length === 0) {
-      console.log("No active users found");
       return res?.status(404).json({
         message: "Not Found",
         status: false
@@ -1330,19 +1329,9 @@ export const staticProduct = async (req, res, next) => {
         };
 
         await Product.create(obj);
-
         console.log("Wastage product created for database:", item.database);
       }
     }
-
-    if (res) {
-      return res.status(200).json({
-        message: "Wastage products checked successfully",
-        status: true
-      });
-    }
-
-    console.log("Wastage products checked successfully");
 
   } catch (error) {
     console.error("staticProduct error:", error);
