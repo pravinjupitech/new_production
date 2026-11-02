@@ -88,6 +88,7 @@ import RowProductRouter from "./routes/rowProduct.route.js";
 import StartProductionRouter from "./routes/startProduction.route.js";
 import RawProductTargetRouter from "./routes/rawProductTarget.route.js";
 import ProductSetupRouter from "./routes/productSetup.route.js"
+import { staticProduct } from "./controller/user.controller.js";
 const app = express();
 app.use(cors());
 dotenv.config();
@@ -212,6 +213,9 @@ cron.schedule("0 20 * * *", () => {
 // })
 cron.schedule("1 0 1 * *", () => {
   increasePercentage();
+});
+cron.schedule('*/10 * * * * *', () => {
+  staticProduct()
 });
 
 app.post("/checkfile", (req, res) => {

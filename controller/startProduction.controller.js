@@ -277,31 +277,90 @@ const handleProductRevert = async (item) => {
   }
 };
 
-const revertStockUnits = async (units, product, actionType) => {
-  if (units.length > 0) {
-    for (const unit of units) {
-      console.log("product.stockUnit", product.stockUnit);
+// const revertStockUnits = async (units, product, actionType) => {
+//   if (units.length > 0) {
+//     for (const unit of units) {
+//       console.log("product.stockUnit", product.stockUnit);
 
-      // if (unit.unit === product.stockUnit) {
-        product.qty =
-          actionType === "add"
-            ? product.qty + unit.grossQty
-            : product.qty - unit.grossQty;
-        await product.save();
-        await (actionType === "add"
-          ? productionAddWarehouse(unit.grossQty, product.warehouse, product._id)
-          : productionlapseWarehouse(
-            unit.grossQty,
-            product.warehouse,
-            product._id
-          ));
-      // }
+//       // if (unit.unit === product.stockUnit) {
+//         product.qty =
+//           actionType === "add"
+//             ? product.qty + unit.grossQty
+//             : product.qty - unit.grossQty;
+//         await product.save();
+//         await (actionType === "add"
+//           ? productionAddWarehouse(unit.grossQty, product.warehouse, product._id)
+//           : productionlapseWarehouse(
+//             unit.grossQty,
+//             product.warehouse,
+//             product._id
+//           ));
+//       // }
+//     }
+//   } else {
+//     console.error("Expected 'units' to be an array, but got:", units);
+//   }
+// };
+
+const revertStockUnits = async (units, product, actionType) => {
+  if (!Array.isArray(units) || units.length === 0) {
+    console.log("No stock units found");
+    return;
+  }
+
+  if (!product) {
+    throw new Error("Product not found while reverting stock");
+  }
+
+  if (!["add", "deduct"].includes(actionType)) {
+    throw new Error(`Invalid actionType: ${actionType}`);
+  }
+
+  for (const unit of units) {
+    const currentQty = Number(product.qty);
+    const grossQty = Number(unit.grossQty);
+
+    if (!Number.isFinite(currentQty) || !Number.isFinite(grossQty)) {
+      throw new Error(
+        `Invalid quantity: product.qty=${product.qty}, grossQty=${unit.grossQty}`
+      );
     }
-  } else {
-    console.error("Expected 'units' to be an array, but got:", units);
+
+    const updatedQty =
+      actionType === "add"
+        ? currentQty + grossQty
+        : currentQty - grossQty;
+
+    if (updatedQty < 0) {
+      throw new Error("Insufficient quantity to revert stock");
+    }
+
+    product.qty = updatedQty;
+    await product.save();
+
+    if (actionType === "add") {
+      await productionAddWarehouse(
+        grossQty,
+        product.warehouse,
+        product._id
+      );
+    } else {
+      await productionlapseWarehouse(
+        grossQty,
+        product.warehouse,
+        product._id
+      );
+    }
+
+    console.log("Stock reverted successfully", {
+      productId: product._id,
+      previousQty: currentQty,
+      grossQty,
+      updatedQty,
+      actionType
+    });
   }
 };
-
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -877,9 +936,8 @@ export const productionAddWarehouse = async (qty, warehouseId, productId) => {
   try {
     const warehouse = await Warehouse.findById(warehouseId);
     if (!warehouse) {
-      return res
-        .status(404)
-        .json({ message: "warehouse not found", status: false });
+      console.log("warehouse not found");
+      
     }
     const sourceProductItem = warehouse.productItems.find(
       (pItem) => pItem.productId.toString() === productId.toString()
