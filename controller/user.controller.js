@@ -1298,49 +1298,95 @@ const generateUniqueSixDigitNumber = () => {
   return uniqueNumber;
 };
 
-
 export const staticProduct = async (req, res, next) => {
   try {
-    const superAdmins = await User.find({ status: "Active" })
-      .populate({ path: "rolename", model: "role" });
+    const superAdmins = await User.find({ status: "Active" });
 
-    if (!superAdmins || superAdmins.length === 0) {
-      return res?.status(404).json({
+    if (!superAdmins.length) {
+      return res.status(404).json({
         message: "Not Found",
-        status: false
+        status: false,
       });
     }
 
     for (const item of superAdmins) {
-      const findProduct = await Product.findOne({
-        Product_Title: "Wastage",
+      let warehouse = await Warehouse.findOne({
+        warehouseName: "Wastage",
         status: "Active",
-        database: item.database
+        database: item.database,
       });
 
-      if (!findProduct) {
-        const obj = {
+      if (!warehouse) {
+        warehouse = await Warehouse.create({
+          warehouseName: "Wastage",
+          status: "Active",
+          database: item.database,
+          id: "Wastage",
+          mobileNo: item.mobileNumber,
+          Username: item.email,
+          productItems: [],
+        });
+
+        console.log("Wastage warehouse created:", item.database);
+      }
+
+      let product = await Product.findOne({
+        Product_Title: "Wastage",
+        status: "Active",
+        database: item.database,
+      });
+
+      if (!product) {
+        product = await Product.create({
           Product_Title: "Wastage",
           created_by: item._id,
           database: item.database,
           type: "Production",
           productSection: "wastage",
-          status: "Active"
-        };
+          status: "Active",
+          warehouse: warehouse._id,
+        });
 
-        await Product.create(obj);
-        console.log("Wastage product created for database:", item.database);
+        console.log("Wastage product created:", item.database);
+      } else {
+        product.warehouse = warehouse._id;
+        await product.save();
+      }
+
+      const existingProduct = warehouse.productItems.find(
+        (p) => p.productId?.toString() === product._id.toString()
+      );
+
+      if (!existingProduct) {
+        warehouse.productItems.push({
+          productId: product._id.toString(),
+          currentStock: 0,
+          transferQty: 0,
+          pendingStock: 0,
+          oQty: 0,
+          pQty: 0,
+          sQty: 0,
+        });
+
+        warehouse.markModified("productItems");
+        await warehouse.save();
+
+        console.log("Wastage product added inside warehouse:", item.database);
       }
     }
+
+    return res.status(200).json({
+      message: "Wastage product and warehouse created/updated successfully",
+      status: true,
+    });
 
   } catch (error) {
     console.error("staticProduct error:", error);
 
-    if (res) {
-      return res.status(500).json({
-        message: "Internal Server Error",
-        status: false
-      });
-    }
+    return res.status(500).json({
+      message: "Internal Server Error",
+      status: false,
+      error: error.message,
+    });
   }
 };
