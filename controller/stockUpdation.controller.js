@@ -652,151 +652,234 @@ entry.category=item.fromProductId?.category||"";
     // START PRODUCTION
     // ==========================================
 
-    for (const production of productionSteps) {
-      for (
-        const detail of production.product_details ||
-        []
-      ) {
-        // ===============================
-        // RAW MATERIAL
-        // OUTWARD
-        // ===============================
+    // for (const production of productionSteps) {
+    //   for (
+    //     const detail of production.product_details ||
+    //     []
+    //   ) {
+    //     // ===============================
+    //     // RAW MATERIAL
+    //     // OUTWARD
+    //     // ===============================
 
-        const rawProduct =
-          productIdMap[
-            detail.rProduct_name?.toString()
-          ];
+    //     const rawProduct =
+    //       productIdMap[
+    //         detail.rProduct_name?.toString()
+    //       ];
 
-        if (rawProduct) {
-          const productId =
-            rawProduct._id.toString();
+    //     if (rawProduct) {
+    //       const productId =
+    //         rawProduct._id.toString();
 
-          const stockUnit =
-            rawProduct.stockUnit;
+    //       const stockUnit =
+    //         rawProduct.stockUnit;
 
-          const unitData =
-            (
-              detail.rProduct_name_Units ||
-              []
-            ).find(
-              (u) =>
-                u.unit ===
-                stockUnit
-            );
+    //       const unitData =
+    //         (
+    //           detail.rProduct_name_Units ||
+    //           []
+    //         ).find(
+    //           (u) =>
+    //             u.unit ===
+    //             stockUnit
+    //         );
 
-          if (
-            unitData &&
-            productMap[
-              productId
-            ]
-          ) {
-            productMap[
-              productId
-            ].outwardQty +=
-              Number(
-                unitData.qty
-              ) || 0;
-          }
-        }
+    //       if (
+    //         unitData &&
+    //         productMap[
+    //           productId
+    //         ]
+    //       ) {
+    //         productMap[
+    //           productId
+    //         ].outwardQty +=
+    //           Number(
+    //             unitData.qty
+    //           ) || 0;
+    //       }
+    //     }
 
-        // ===============================
-        // FINISHED PRODUCT
-        // INWARD
-        // ===============================
+    //     // ===============================
+    //     // FINISHED PRODUCT
+    //     // INWARD
+    //     // ===============================
 
-        for (
-          const finalProduct of detail.finalProductDetails ||
-          []
-        ) {
-          const product =
-            productIdMap[
-              finalProduct.fProduct_name?.toString()
-            ];
+    //     for (
+    //       const finalProduct of detail.finalProductDetails ||
+    //       []
+    //     ) {
+    //       const product =
+    //         productIdMap[
+    //           finalProduct.fProduct_name?.toString()
+    //         ];
 
-          if (!product)
-            continue;
+    //       if (!product)
+    //         continue;
 
-          const productId =
-            product._id.toString();
+    //       const productId =
+    //         product._id.toString();
 
-          const stockUnit =
-            product.stockUnit;
+    //       const stockUnit =
+    //         product.stockUnit;
 
-          const unitData =
-            (
-              finalProduct.fProduct_name_Units ||
-              []
-            ).find(
-              (u) =>
-                u.unit ===
-                stockUnit
-            );
+    //       const unitData =
+    //         (
+    //           finalProduct.fProduct_name_Units ||
+    //           []
+    //         ).find(
+    //           (u) =>
+    //             u.unit ===
+    //             stockUnit
+    //         );
 
-          if (
-            unitData &&
-            productMap[
-              productId
-            ]
-          ) {
-            productMap[
-              productId
-            ].iQty +=
-              Number(
-                unitData.qty
-              ) || 0;
-          }
-        }
+    //       if (
+    //         unitData &&
+    //         productMap[
+    //           productId
+    //         ]
+    //       ) {
+    //         productMap[
+    //           productId
+    //         ].iQty +=
+    //           Number(
+    //             unitData.qty
+    //           ) || 0;
+    //       }
+    //     }
 
-        // ===============================
-        // WASTAGE PRODUCT
-        // INWARD
-        // ===============================
+    //     // ===============================
+    //     // WASTAGE PRODUCT
+    //     // INWARD
+    //     // ===============================
 
-        for (
-          const wastageProduct of detail.wastageProductDetails ||
-          []
-        ) {
-          const product =
-            productIdMap[
-              wastageProduct.wProduct_name?.toString()
-            ];
+    //     for (
+    //       const wastageProduct of detail.wastageProductDetails ||
+    //       []
+    //     ) {
+    //       const product =
+    //         productIdMap[
+    //           wastageProduct.wProduct_name?.toString()
+    //         ];
 
-          if (!product)
-            continue;
+    //       if (!product)
+    //         continue;
 
-          const productId =
-            product._id.toString();
+    //       const productId =
+    //         product._id.toString();
 
-          const stockUnit =
-            product.stockUnit;
+    //       const stockUnit =
+    //         product.stockUnit;
 
-          const unitData =
-            (
-              wastageProduct.wProduct_name_Units ||
-              []
-            ).find(
-              (u) =>
-                u.unit ===
-                stockUnit
-            );
+    //       const unitData =
+    //         (
+    //           wastageProduct.wProduct_name_Units ||
+    //           []
+    //         ).find(
+    //           (u) =>
+    //             u.unit ===
+    //             stockUnit
+    //         );
 
-          if (
-            unitData &&
-            productMap[
-              productId
-            ]
-          ) {
-            productMap[
-              productId
-            ].iQty +=
-              Number(
-                unitData.qty
-              ) || 0;
-          }
-        }
+    //       if (
+    //         unitData &&
+    //         productMap[
+    //           productId
+    //         ]
+    //       ) {
+    //         productMap[
+    //           productId
+    //         ].iQty +=
+    //           Number(
+    //             unitData.qty
+    //           ) || 0;
+    //       }
+    //     }
+    //   }
+    // }
+
+
+for (const production of productionSteps) {
+  for (const detail of production.product_details || []) {
+
+    // ===============================
+    // RAW MATERIAL
+    // OUTWARD
+    // ===============================
+
+    const rawProductId = detail.rProduct_name?.toString();
+    const rawProduct = productIdMap[rawProductId];
+
+    if (rawProduct) {
+      const productId = rawProduct._id.toString();
+
+      // Your saved model contains grossQty, not qty.
+      const totalQty = (detail.rProduct_name_Units || []).reduce(
+        (sum, unit) => sum + (Number(unit.grossQty) || 0),
+        0
+      );
+
+      if (productMap[productId]) {
+        productMap[productId].outwardQty += totalQty;
       }
     }
 
+    // ===============================
+    // FINISHED PRODUCT
+    // INWARD
+    // ===============================
+
+    for (const finalProduct of detail.finalProductDetails || []) {
+
+      const finalProductId =
+        finalProduct.fProduct_name?.toString();
+
+      const product = productIdMap[finalProductId];
+
+      if (!product) continue;
+
+      const productId = product._id.toString();
+
+      const totalQty = (
+        finalProduct.fProduct_name_Units || []
+      ).reduce(
+        (sum, unit) => sum + (Number(unit.grossQty) || 0),
+        0
+      );
+
+      if (productMap[productId]) {
+        productMap[productId].iQty += totalQty;
+      }
+    }
+
+    // ===============================
+    // WASTAGE PRODUCT
+    // INWARD
+    // ===============================
+
+    for (const wastageProduct of detail.wastageProductDetails || []) {
+
+      const wastageProductId =
+        wastageProduct.wProduct_name?.toString();
+
+      const product = productIdMap[wastageProductId];
+
+      if (!product) continue;
+
+      const productId = product._id.toString();
+
+      const totalQty = (
+        wastageProduct.wProduct_name_Units || []
+      ).reduce(
+        (sum, unit) => sum + (Number(unit.grossQty) || 0),
+        0
+      );
+
+      if (productMap[productId]) {
+        productMap[productId].iQty += totalQty;
+      }
+    }
+  }
+}
     // ==========================================
     // CLOSING STOCK
     // ==========================================
