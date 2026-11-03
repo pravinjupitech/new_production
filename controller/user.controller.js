@@ -1303,10 +1303,14 @@ export const staticProduct = async (req, res, next) => {
     const superAdmins = await User.find({ status: "Active" });
 
     if (!superAdmins.length) {
-      return res.status(404).json({
-        message: "Not Found",
-        status: false,
-      });
+      if (res) {
+        return res.status(404).json({
+          message: "Not Found",
+          status: false,
+        });
+      }
+
+      return false;
     }
 
     for (const item of superAdmins) {
@@ -1326,8 +1330,6 @@ export const staticProduct = async (req, res, next) => {
           Username: item.email,
           productItems: [],
         });
-
-        console.log("Wastage warehouse created:", item.database);
       }
 
       let product = await Product.findOne({
@@ -1345,11 +1347,15 @@ export const staticProduct = async (req, res, next) => {
           productSection: "wastage",
           status: "Active",
           warehouse: warehouse._id,
+          qty: 0,
         });
-
-        console.log("Wastage product created:", item.database);
       } else {
         product.warehouse = warehouse._id;
+
+        if (!Number.isFinite(Number(product.qty))) {
+          product.qty = 0;
+        }
+
         await product.save();
       }
 
@@ -1363,30 +1369,33 @@ export const staticProduct = async (req, res, next) => {
           currentStock: 0,
           transferQty: 0,
           pendingStock: 0,
-          oQty: 0,
-          pQty: 0,
-          sQty: 0,
         });
 
         warehouse.markModified("productItems");
         await warehouse.save();
-
-        console.log("Wastage product added inside warehouse:", item.database);
       }
     }
 
-    return res.status(200).json({
-      message: "Wastage product and warehouse created/updated successfully",
-      status: true,
-    });
+    if (res) {
+      return res.status(200).json({
+        message: "Wastage product created successfully",
+        status: true,
+      });
+    }
+
+    return true;
 
   } catch (error) {
     console.error("staticProduct error:", error);
 
-    return res.status(500).json({
-      message: "Internal Server Error",
-      status: false,
-      error: error.message,
-    });
+    if (res) {
+      return res.status(500).json({
+        message: "Internal Server Error",
+        status: false,
+        error: error.message,
+      });
+    }
+
+    throw error;
   }
 };
