@@ -454,6 +454,7 @@ export const deleteStockTransfer = async (req, res) => {
 // };
 
 
+
 export const financeYearWiseReport = async (req, res) => {
   try {
     const { database, financeYear } = req.params;
@@ -478,6 +479,7 @@ export const financeYearWiseReport = async (req, res) => {
         },
       ]),
 
+      // Only active products of this database
       Product.find({
         database,
         status: "Active",
@@ -492,14 +494,13 @@ export const financeYearWiseReport = async (req, res) => {
     const productMap = {};
     const productIdMap = {};
 
-    const createProductEntry = (
-      productId
-    ) => ({
+    const createProductEntry = (productId) => ({
       productId,
 
       Product_Title: "",
       HSN_Code: "",
-category:"",
+      category: "",
+
       oQty: 0,
       openingRate: 0,
       openingTotal: 0,
@@ -516,44 +517,27 @@ category:"",
 
     // ==========================================
     // PRODUCT MASTER
+    // Only active products from requested database
     // ==========================================
 
     for (const product of products) {
-      const productId =
-        product._id.toString();
+      const productId = product._id.toString();
 
-      productIdMap[productId] =
-        product;
+      productIdMap[productId] = product;
 
-      if (!productMap[productId]) {
-        productMap[productId] =
-          createProductEntry(
-            productId
-          );
-      }
+      productMap[productId] = createProductEntry(productId);
 
-      const entry =
-        productMap[productId];
+      const entry = productMap[productId];
 
-      entry.Product_Title =
-        product.Product_Title || "";
-entry.category=product.category||"";
-      entry.HSN_Code =
-        product.HSN_Code || "";
+      entry.Product_Title = product.Product_Title || "";
+      entry.category = product.category || "";
+      entry.HSN_Code = product.HSN_Code || "";
 
-      entry.oQty =
-        Number(
-          product.Opening_Stock
-        ) || 0;
+      entry.oQty = Number(product.Opening_Stock) || 0;
 
-      entry.openingRate =
-        Number(
-          product.openingRate
-        ) || 0;
+      entry.openingRate = Number(product.openingRate) || 0;
 
-      entry.openingTotal =
-        entry.oQty *
-        entry.openingRate;
+      entry.openingTotal = entry.oQty * entry.openingRate;
     }
 
     // ==========================================
@@ -561,89 +545,39 @@ entry.category=product.category||"";
     // ==========================================
 
     for (const stock of stockUpdation) {
-      for (
-        const item of stock.productItems
-      ) {
-        const qty =
-          Number(
-            item.transferQty
-          ) || 0;
+      for (const item of stock.productItems || []) {
+        const qty = Number(item.transferQty) || 0;
+        const price = Number(item.price) || 0;
 
-        const price =
-          Number(item.price) || 0;
-
+        // ======================================
         // INWARD
+        // ======================================
 
-        if (item.toProductId) {
-          const productId =
-            item.toProductId._id.toString();
+        if (item.toProductId?._id) {
+          const productId = item.toProductId._id.toString();
 
-          if (
-            !productMap[productId]
-          ) {
-            productMap[
-              productId
-            ] =
-              createProductEntry(
-                productId
-              );
+          // Do not add products outside active product master
+          const entry = productMap[productId];
+
+          if (entry) {
+            entry.iQty += qty;
+            entry.inwardTotal += qty * price;
           }
-
-          const entry =
-            productMap[
-              productId
-            ];
-
-          entry.Product_Title =
-            item.toProductId
-              ?.Product_Title ||
-            "";
-entry.category=item.toProductId?.category||"";
-          entry.HSN_Code =
-            item.toProductId
-              ?.HSN_Code || "";
-
-          entry.iQty += qty;
-
-          entry.inwardTotal +=
-            qty * price;
         }
 
+        // ======================================
         // OUTWARD
+        // ======================================
 
-        if (
-          item.fromProductId
-        ) {
-          const productId =
-            item.fromProductId._id.toString();
+        if (item.fromProductId?._id) {
+          const productId = item.fromProductId._id.toString();
 
-          if (
-            !productMap[productId]
-          ) {
-            productMap[
-              productId
-            ] =
-              createProductEntry(
-                productId
-              );
+          // Do not add products outside active product master
+          const entry = productMap[productId];
+
+          if (entry) {
+            entry.outwardQty += qty;
           }
-
-          const entry =
-            productMap[
-              productId
-            ];
-
-          entry.Product_Title =
-            item.fromProductId
-              ?.Product_Title ||
-            "";
-entry.category=item.fromProductId?.category||"";
-          entry.HSN_Code =
-            item.fromProductId
-              ?.HSN_Code || "";
-
-          entry.outwardQty +=
-            qty;
         }
       }
     }
@@ -652,328 +586,174 @@ entry.category=item.fromProductId?.category||"";
     // START PRODUCTION
     // ==========================================
 
-    // for (const production of productionSteps) {
-    //   for (
-    //     const detail of production.product_details ||
-    //     []
-    //   ) {
-    //     // ===============================
-    //     // RAW MATERIAL
-    //     // OUTWARD
-    //     // ===============================
+    for (const production of productionSteps) {
+      for (const detail of production.product_details || []) {
 
-    //     const rawProduct =
-    //       productIdMap[
-    //         detail.rProduct_name?.toString()
-    //       ];
+        // ======================================
+        // RAW MATERIAL
+        // OUTWARD
+        // ======================================
 
-    //     if (rawProduct) {
-    //       const productId =
-    //         rawProduct._id.toString();
+        const rawProductId = detail.rProduct_name?.toString();
 
-    //       const stockUnit =
-    //         rawProduct.stockUnit;
+        const rawProduct = productIdMap[rawProductId];
 
-    //       const unitData =
-    //         (
-    //           detail.rProduct_name_Units ||
-    //           []
-    //         ).find(
-    //           (u) =>
-    //             u.unit ===
-    //             stockUnit
-    //         );
+        if (rawProduct) {
+          const productId = rawProduct._id.toString();
 
-    //       if (
-    //         unitData &&
-    //         productMap[
-    //           productId
-    //         ]
-    //       ) {
-    //         productMap[
-    //           productId
-    //         ].outwardQty +=
-    //           Number(
-    //             unitData.qty
-    //           ) || 0;
-    //       }
-    //     }
+          const totalQty = (
+            detail.rProduct_name_Units || []
+          ).reduce((sum, unit) => {
+            return sum + (Number(unit.grossQty) || 0);
+          }, 0);
 
-    //     // ===============================
-    //     // FINISHED PRODUCT
-    //     // INWARD
-    //     // ===============================
+          const entry = productMap[productId];
 
-    //     for (
-    //       const finalProduct of detail.finalProductDetails ||
-    //       []
-    //     ) {
-    //       const product =
-    //         productIdMap[
-    //           finalProduct.fProduct_name?.toString()
-    //         ];
+          if (entry) {
+            entry.outwardQty += totalQty;
+          }
+        }
 
-    //       if (!product)
-    //         continue;
+        // ======================================
+        // FINISHED PRODUCT
+        // INWARD
+        // ======================================
 
-    //       const productId =
-    //         product._id.toString();
+        for (const finalProduct of detail.finalProductDetails || []) {
+          const finalProductId =
+            finalProduct.fProduct_name?.toString();
 
-    //       const stockUnit =
-    //         product.stockUnit;
+          const product = productIdMap[finalProductId];
 
-    //       const unitData =
-    //         (
-    //           finalProduct.fProduct_name_Units ||
-    //           []
-    //         ).find(
-    //           (u) =>
-    //             u.unit ===
-    //             stockUnit
-    //         );
+          if (!product) continue;
 
-    //       if (
-    //         unitData &&
-    //         productMap[
-    //           productId
-    //         ]
-    //       ) {
-    //         productMap[
-    //           productId
-    //         ].iQty +=
-    //           Number(
-    //             unitData.qty
-    //           ) || 0;
-    //       }
-    //     }
+          const productId = product._id.toString();
 
-    //     // ===============================
-    //     // WASTAGE PRODUCT
-    //     // INWARD
-    //     // ===============================
+          const totalQty = (
+            finalProduct.fProduct_name_Units || []
+          ).reduce((sum, unit) => {
+            return sum + (Number(unit.grossQty) || 0);
+          }, 0);
 
-    //     for (
-    //       const wastageProduct of detail.wastageProductDetails ||
-    //       []
-    //     ) {
-    //       const product =
-    //         productIdMap[
-    //           wastageProduct.wProduct_name?.toString()
-    //         ];
+          const entry = productMap[productId];
 
-    //       if (!product)
-    //         continue;
+          if (entry) {
+            entry.iQty += totalQty;
+          }
+        }
 
-    //       const productId =
-    //         product._id.toString();
+        // ======================================
+        // WASTAGE PRODUCT
+        // INWARD
+        // ======================================
 
-    //       const stockUnit =
-    //         product.stockUnit;
+        for (const wastageProduct of detail.wastageProductDetails || []) {
+          const wastageProductId =
+            wastageProduct.wProduct_name?.toString();
 
-    //       const unitData =
-    //         (
-    //           wastageProduct.wProduct_name_Units ||
-    //           []
-    //         ).find(
-    //           (u) =>
-    //             u.unit ===
-    //             stockUnit
-    //         );
+          const product = productIdMap[wastageProductId];
 
-    //       if (
-    //         unitData &&
-    //         productMap[
-    //           productId
-    //         ]
-    //       ) {
-    //         productMap[
-    //           productId
-    //         ].iQty +=
-    //           Number(
-    //             unitData.qty
-    //           ) || 0;
-    //       }
-    //     }
-    //   }
-    // }
+          if (!product) continue;
 
+          const productId = product._id.toString();
 
-for (const production of productionSteps) {
-  for (const detail of production.product_details || []) {
+          const totalQty = (
+            wastageProduct.wProduct_name_Units || []
+          ).reduce((sum, unit) => {
+            return sum + (Number(unit.grossQty) || 0);
+          }, 0);
 
-    // ===============================
-    // RAW MATERIAL
-    // OUTWARD
-    // ===============================
+          const entry = productMap[productId];
 
-    const rawProductId = detail.rProduct_name?.toString();
-    const rawProduct = productIdMap[rawProductId];
-
-    if (rawProduct) {
-      const productId = rawProduct._id.toString();
-
-      // Your saved model contains grossQty, not qty.
-      const totalQty = (detail.rProduct_name_Units || []).reduce(
-        (sum, unit) => sum + (Number(unit.grossQty) || 0),
-        0
-      );
-
-      if (productMap[productId]) {
-        productMap[productId].outwardQty += totalQty;
+          if (entry) {
+            entry.iQty += totalQty;
+          }
+        }
       }
     }
 
-    // ===============================
-    // FINISHED PRODUCT
-    // INWARD
-    // ===============================
-
-    for (const finalProduct of detail.finalProductDetails || []) {
-
-      const finalProductId =
-        finalProduct.fProduct_name?.toString();
-
-      const product = productIdMap[finalProductId];
-
-      if (!product) continue;
-
-      const productId = product._id.toString();
-
-      const totalQty = (
-        finalProduct.fProduct_name_Units || []
-      ).reduce(
-        (sum, unit) => sum + (Number(unit.grossQty) || 0),
-        0
-      );
-
-      if (productMap[productId]) {
-        productMap[productId].iQty += totalQty;
-      }
-    }
-
-    // ===============================
-    // WASTAGE PRODUCT
-    // INWARD
-    // ===============================
-
-    for (const wastageProduct of detail.wastageProductDetails || []) {
-
-      const wastageProductId =
-        wastageProduct.wProduct_name?.toString();
-
-      const product = productIdMap[wastageProductId];
-
-      if (!product) continue;
-
-      const productId = product._id.toString();
-
-      const totalQty = (
-        wastageProduct.wProduct_name_Units || []
-      ).reduce(
-        (sum, unit) => sum + (Number(unit.grossQty) || 0),
-        0
-      );
-
-      if (productMap[productId]) {
-        productMap[productId].iQty += totalQty;
-      }
-    }
-  }
-}
     // ==========================================
     // CLOSING STOCK
     // ==========================================
 
     for (const productId in productMap) {
-      const entry =
-        productMap[
-          productId
-        ];
+      const entry = productMap[productId];
 
       entry.closingQty =
         entry.oQty +
         entry.iQty -
         entry.outwardQty;
 
-      const totalQty =
-        entry.oQty +
-        entry.iQty;
+      const totalQty = entry.oQty + entry.iQty;
 
       entry.closingRate =
         totalQty > 0
           ? (
               entry.openingTotal +
               entry.inwardTotal
-            ) /
-            totalQty
+            ) / totalQty
           : 0;
 
       entry.closingTotal =
-        entry.closingQty *
-        entry.closingRate;
+        entry.closingQty * entry.closingRate;
     }
 
-    const stockReport =
-      Object.values(
-        productMap
-      );
+    // ==========================================
+    // STOCK REPORT
+    // ==========================================
 
-    const totalSummary =
-      stockReport.reduce(
-        (acc, item) => {
-          acc.Product_Title =
-            "Total";
+    const stockReport = Object.values(productMap);
 
-          acc.oQty +=
-            item.oQty || 0;
+    // ==========================================
+    // TOTAL SUMMARY
+    // ==========================================
 
-          acc.iQty +=
-            item.iQty || 0;
+    const totalSummary = stockReport.reduce(
+      (acc, item) => {
+        acc.oQty += Number(item.oQty) || 0;
 
-          acc.outwardQty +=
-            item.outwardQty ||
-            0;
+        acc.iQty += Number(item.iQty) || 0;
 
-          acc.closingQty +=
-            item.closingQty ||
-            0;
+        acc.outwardQty += Number(item.outwardQty) || 0;
 
-          acc.closingTotal +=
-            item.closingTotal ||
-            0;
+        acc.closingQty += Number(item.closingQty) || 0;
 
-          return acc;
-        },
-        {
-          Product_Title:
-            "Total",
-          oQty: 0,
-          iQty: 0,
-          outwardQty: 0,
-          closingQty: 0,
-          closingTotal: 0,
-        }
-      );
+        acc.closingTotal += Number(item.closingTotal) || 0;
+
+        return acc;
+      },
+      {
+        Product_Title: "Total",
+        oQty: 0,
+        iQty: 0,
+        outwardQty: 0,
+        closingQty: 0,
+        closingTotal: 0,
+      }
+    );
+
+    // ==========================================
+    // SUCCESS RESPONSE
+    // ==========================================
 
     return res.status(200).json({
       status: true,
-      message:
-        "Stock report generated successfully",
+      message: "Stock report generated successfully",
       data: stockReport,
       totalSummary,
     });
+
   } catch (error) {
-    console.error(error);
+    console.error("Finance Year Wise Report Error:", error);
 
     return res.status(500).json({
       status: false,
-      message:
-        "Internal Server Error",
-      error:
-        error.message,
+      message: "Internal Server Error",
+      error: error.message,
     });
   }
 };
+
 
 
 
