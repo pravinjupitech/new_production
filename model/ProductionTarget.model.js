@@ -63,6 +63,12 @@ const ProductSchema = new mongoose.Schema(
       type: [OutputProductDetailSchema],
       default: [],
     },
+    rawProductCalculations:{
+      type:[]
+    },
+    selectedRawProductIds:{
+      type:[]
+    }
   },
   { _id: false }
 );
